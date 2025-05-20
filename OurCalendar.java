@@ -13,6 +13,8 @@ import java.util.List;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class OurCalendar extends JFrame {
 	//멤버 변수 선언
@@ -52,6 +54,14 @@ public class OurCalendar extends JFrame {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
 		
+		// 위젯 닫힐 때 현재 달의 할 일 저장
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				saveFile();
+			}
+		});
+		
 		//위쪽의 달력을 넘기는 버튼과 년-월 추가
 		headPanel = new JPanel();
 		monthLabel = new JLabel();
@@ -63,10 +73,12 @@ public class OurCalendar extends JFrame {
 		
 		//버튼 이벤트 설정
 		prevButton.addActionListener(e -> {
+			saveFile(); // 현재 달의 할 일 저장
 			cal.add(cal.MONTH, -1);
 			updateCal();
 		});
 		nextButton.addActionListener(e -> {
+			saveFile(); // 현재 달의 할 일 저장
 			cal.add(cal.MONTH, 1);
 			updateCal();
 		});
@@ -120,10 +132,22 @@ public class OurCalendar extends JFrame {
 			calPanel.add(new JLabel(""));
 		}
 		
+		//할 일 데이터 로드
+		openFile();
+		
 		//여기서 부터 날짜를 채움
 		for(int day = 1; day <= lastDay; day++) {
 			calendar[day].setDate(day, dayWeek);
 			calendar[day].setBackground(Color.white);
+			
+			// 해당 날짜에 할 일이 있으면 표시
+			String dateKey = getDateKey(year, month, day);
+			if(tasks.containsKey(dateKey) && !tasks.get(dateKey).isEmpty()) {
+				calendar[day].setText(day + " " + tasks.get(dateKey).get(0).getTaskName());
+			} else {
+				calendar[day].setText(String.valueOf(day));
+			}
+			
 			calPanel.add(calendar[day]);
 			
 			if(dayWeek == 7)
@@ -169,14 +193,14 @@ public class OurCalendar extends JFrame {
 	
 	//현재 달의 할 일 리스트를 파일로 저장하는 함수
 	void saveFile() {
-		//현재 할 일이 변경될 때마다 년-월 형식의 이름으로 파일에 할 일 리스트 저장
+		FileManager.saveToFile(year, month, tasks);
+		System.out.println("할 일 데이터 저장 완료: " + year + "-" + (month + 1));
 	}
 	
 	//달이 변경되었을 때, 그 달의 할 일 리스트를 가져오는 함수
 	void openFile() {
-		//현재 달이 변경될 때마다 변경 후의 년-월로 이루어진 파일을 찾아서 open
-		//만약 없다면 새로 생성
-		//만약 있다면 open해서 저장된 리스트를 calendar[]의 각 객체에 전달
+		tasks = FileManager.loadFromFile(year, month);
+		System.out.println("할 일 데이터 로드 완료: " + year + "-" + (month + 1));
 	}
 	
 	public int getYear() {
