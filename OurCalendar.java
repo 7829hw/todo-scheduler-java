@@ -12,9 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 public class OurCalendar extends JFrame {
 	//멤버 변수 선언
@@ -26,11 +29,16 @@ public class OurCalendar extends JFrame {
 	public OurDate calendar[] = new OurDate[32]; //현재 날짜의 정보는 claendar[currentDay]로 접근 가능
 	public Calendar cal = Calendar.getInstance();
 	HashMap<String, List<ToDo>> tasks = new HashMap<>(); // "년-월-일" : ToDo 연결
+	private ReminderService reminderService = new ReminderService();
+
 	
 	//위젯 관련 멤버 변수
 	JPanel headPanel; //달력 위쪽을 표현할 위젯
 	JLabel monthLabel; //달력의 년-월을 표현할 위젯
 	JPanel calPanel; //달력의 날짜를 표현할 위젯
+	//<<수정부분>>
+	JButton prevButton;
+	JButton nextButton;
 	
 	//<멤버 메소드 선언 및 정의>
 	//생성자
@@ -45,10 +53,22 @@ public class OurCalendar extends JFrame {
 			calendar[day] = new OurDate(0, 0, this);
 			calendar[day].setBackground(Color.white);
 		}
+		
+		//<<수정 부분>>
+		//달력의 크기 바뀔때마다 글자 크기 조정
+		this.addComponentListener(new ComponentAdapter(){
+			public void componentResized(ComponentEvent e) {
+				if(OurCalendar.this.calPanel != null)
+					OurCalendar.this.updateCal();
+			}
+		});
+		openFile();
 	}
 	
 	//달력을 출력하는 메소드
 	void showCalendar() {
+		openFile();
+		
 		setTitle("Calendar"); 
 		setSize(700, 500); //달력 panel 크기
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -65,8 +85,9 @@ public class OurCalendar extends JFrame {
 		//위쪽의 달력을 넘기는 버튼과 년-월 추가
 		headPanel = new JPanel();
 		monthLabel = new JLabel();
-		JButton prevButton = new JButton("<");
-		JButton nextButton = new JButton(">");
+		//<<수정 부분>>
+		prevButton = new JButton("<");
+		nextButton = new JButton(">");
 		headPanel.add(prevButton);
 		headPanel.add(monthLabel);
 		headPanel.add(nextButton);
@@ -98,6 +119,8 @@ public class OurCalendar extends JFrame {
 		
 		updateCal();
 		setVisible(true); //위젯들이 보이도록 설정
+		
+		startReminderTimer(); 
 	}
 	
 	//달력을 업데이트 하는 함수
@@ -107,10 +130,21 @@ public class OurCalendar extends JFrame {
 		currentDay = 0;
 		currentWeek = 0;
 		
+		//<<수정 부분>>
+		this.prevButton.setPreferredSize(new Dimension(this.getWidth() / 17, this.getHeight() / 20));
+		this.nextButton.setPreferredSize(new Dimension(this.getWidth() / 17, this.getHeight() / 20));
 		//요일 설정
 		String[] days = {"일", "월", "화", "수", "목", "금", "토"};
 		for(String day : days) {
-			calPanel.add(new JLabel(day, SwingConstants.CENTER));
+			JLabel label = new JLabel(day, SwingConstants.CENTER);
+			label.setFont(label.getFont().deriveFont(this.getWidth() * this.getHeight() / 25000.0f));
+			if(day == "일")
+				label.setForeground(Color.red);
+			else if(day == "토")
+				label.setForeground(Color.blue);
+			else
+				label.setForeground(Color.black);
+			calPanel.add(label);
 		}
 		
 		//현재의 년, 월, 마지막 날을 가져옴
@@ -119,7 +153,9 @@ public class OurCalendar extends JFrame {
 		
 		//년-월 위젯을 추가
 		monthLabel.setText(String.format("%d년 %d월", year, month + 1));
+		monthLabel.setFont(monthLabel.getFont().deriveFont(this.getWidth() * this.getHeight() / 25000.0f));
 		
+		openFile();
 		//현재 날짜를 현재 년도의 월의 1일로 변경
 		cal.set(year, month, 1);
 		//그 후 현재 날짜의 마지막 날짜를 가져옴
@@ -132,28 +168,34 @@ public class OurCalendar extends JFrame {
 			calPanel.add(new JLabel(""));
 		}
 		
-		//할 일 데이터 로드
-		openFile();
-		
 		//여기서 부터 날짜를 채움
 		for(int day = 1; day <= lastDay; day++) {
 			calendar[day].setDate(day, dayWeek);
 			calendar[day].setBackground(Color.white);
 			
-			// 해당 날짜에 할 일이 있으면 표시
-			String dateKey = getDateKey(year, month, day);
-			if(tasks.containsKey(dateKey) && !tasks.get(dateKey).isEmpty()) {
-				calendar[day].setText(day + " " + tasks.get(dateKey).get(0).getTaskName());
-			} else {
-				calendar[day].setText(String.valueOf(day));
-			}
-			
+			//  일정이 있으면 제목 표시
+		    String key = getDateKey(year, month, day);
+		    List<ToDo> todos = tasks.get(key);
+		    if (todos != null && !todos.isEmpty()) {
+		        calendar[day].setText(day + " " + todos.get(0).getTaskName()); // 여러 일정 중 첫 번째만
+		    }
+		    
+		    //<<수정 부분>>
+		    if(dayWeek == 1) {
+		    	dayWeek++;
+		    	calendar[day].setForeground(Color.red);
+		    }
+		    else if(dayWeek == 7) {
+		    	dayWeek = 1;
+		    	calendar[day].setForeground(Color.blue);
+		    }
+		    else {
+		    	dayWeek++;
+		    	calendar[day].setForeground(Color.black);
+		    }
+		    
+		    calendar[day].setFont( calendar[day].getFont().deriveFont(this.getWidth() * this.getHeight() / 25000.0f));
 			calPanel.add(calendar[day]);
-			
-			if(dayWeek == 7)
-				dayWeek = 1;
-			else
-				dayWeek++;
 		}
 		
 		calPanel.revalidate();
@@ -201,6 +243,13 @@ public class OurCalendar extends JFrame {
 	void openFile() {
 		tasks = FileManager.loadFromFile(year, month);
 		System.out.println("할 일 데이터 로드 완료: " + year + "-" + (month + 1));
+	}
+	
+	void startReminderTimer() {
+	    Timer timer = new Timer(20 * 1000, e -> {
+	        reminderService.checkReminders(this);
+	    });
+	    timer.start();
 	}
 	
 	public int getYear() {

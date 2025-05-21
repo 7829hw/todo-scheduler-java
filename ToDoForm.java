@@ -151,7 +151,7 @@ public class ToDoForm extends JDialog {
 
         JPanel start = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         startYearLabel = createCustomDropdown(makeYearList(), year + "년");
-        startMonthLabel = createCustomDropdown(makeMonthList(), month + "월");
+        startMonthLabel = createCustomDropdown(makeMonthList(), (month+1) + "월");
         startDayLabel = createCustomDropdown(makeDayList(), day + "일");
         startHourLabel = createCustomDropdown(makeHourList(), "0시");
         startMinuteLabel = createCustomDropdown(makeMinuteList(), "0분");
@@ -171,7 +171,7 @@ public class ToDoForm extends JDialog {
 
         JPanel end = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         endYearLabel = createCustomDropdown(makeYearList(), year + "년");
-        endMonthLabel = createCustomDropdown(makeMonthList(), month + "월");
+        endMonthLabel = createCustomDropdown(makeMonthList(), (month+1) + "월");
         endDayLabel = createCustomDropdown(makeDayList(), day + "일");
         endHourLabel = createCustomDropdown(makeHourList(), "1시");
         endMinuteLabel = createCustomDropdown(makeMinuteList(), "0분");
@@ -276,12 +276,12 @@ public class ToDoForm extends JDialog {
 		String location = locationField.getText().trim();
 		boolean isAllDay = checkBox.isSelected();
 		int sy = Integer.parseInt(startYearLabel.getText().replace("년", ""));
-		int sm = Integer.parseInt(startMonthLabel.getText().replace("월", ""));
+		int sm = Integer.parseInt(startMonthLabel.getText().replace("월", ""))-1;
 		int sd = Integer.parseInt(startDayLabel.getText().replace("일", ""));
 		int sh = Integer.parseInt(startHourLabel.getText().replace("시", ""));
 		int smin = Integer.parseInt(startMinuteLabel.getText().replace("분", ""));
 		int ey = Integer.parseInt(endYearLabel.getText().replace("년", ""));
-		int em = Integer.parseInt(endMonthLabel.getText().replace("월", ""));
+		int em = Integer.parseInt(endMonthLabel.getText().replace("월", ""))-1;
 		int ed = Integer.parseInt(endDayLabel.getText().replace("일", ""));
 		int eh = Integer.parseInt(endHourLabel.getText().replace("시", ""));
 		int emin = Integer.parseInt(endMinuteLabel.getText().replace("분", ""));
@@ -436,6 +436,8 @@ public class ToDoForm extends JDialog {
 	            if (confirm == JOptionPane.YES_OPTION) {
 	                list.remove(index); // 리스트에서 해당 일정 제거
 	                dialog.dispose();
+	                //<< 수정 부분 >>;
+	                ((OurCalendar) parent).updateCal();
 	                showDialogWithList(parent, dateKey, list); // 갱신된 리스트로 다시 열기
 	            }
 	        });
@@ -476,13 +478,13 @@ public class ToDoForm extends JDialog {
 	    checkBox.setSelected(todo.isAllDay());
 
 	    startYearLabel.setText(todo.getStartYear() + "년");
-	    startMonthLabel.setText(todo.getStartMonth() + "월");
+	    startMonthLabel.setText((todo.getStartMonth() + 1) + "월");
 	    startDayLabel.setText(todo.getStartDay() + "일");
 	    startHourLabel.setText(todo.getStartHour() + "시");
 	    startMinuteLabel.setText(todo.getStartMinute() + "분");
 
 	    endYearLabel.setText(todo.getEndYear() + "년");
-	    endMonthLabel.setText(todo.getEndMonth() + "월");
+	    endMonthLabel.setText((todo.getEndMonth() + 1) + "월");
 	    endDayLabel.setText(todo.getEndDay() + "일");
 	    endHourLabel.setText(todo.getEndHour() + "시");
 	    endMinuteLabel.setText(todo.getEndMinute() + "분");
