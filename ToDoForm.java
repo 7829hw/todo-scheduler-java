@@ -432,15 +432,45 @@ public class ToDoForm extends JDialog {
 	        deleteButton.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
 	        deleteButton.setMargin(new Insets(2, 5, 2, 5));
 	        deleteButton.addActionListener(e -> {
-	            int confirm = JOptionPane.showConfirmDialog(dialog, "삭제하시겠습니까?", "삭제 확인", JOptionPane.YES_NO_OPTION); // 삭제 확인창
-	            if (confirm == JOptionPane.YES_OPTION) {
-	                list.remove(index); // 리스트에서 해당 일정 제거
-	                dialog.dispose();
-	                //<< 수정 부분 >>;
-	                ((OurCalendar) parent).updateCal();
-	                showDialogWithList(parent, dateKey, list); // 갱신된 리스트로 다시 열기
-	            }
-	        });
+				int confirm = JOptionPane.showConfirmDialog(dialog, "삭제하시겠습니까?", "삭제 확인", JOptionPane.YES_NO_OPTION);
+				if (confirm == JOptionPane.YES_OPTION) {
+					// 리스트에서 항목 제거
+					list.remove(index);
+					
+					// OurCalendar 객체 가져오기
+					OurCalendar calObj = (OurCalendar) parent;
+					
+					// 중요: 데이터 삭제 후 바로 파일에 저장
+					calObj.saveFile();
+					
+					// 다이얼로그 닫기
+					dialog.dispose();
+					
+					// 해당 날짜의 캘린더 표시 업데이트
+					int day = Integer.parseInt(dateKey.split("-")[2]);
+					if (list.isEmpty()) {
+						// 모든 일정이 삭제된 경우 날짜만 표시
+						calObj.calendar[day].setText(String.valueOf(day));
+					} else {
+						// 첫 번째 일정 표시
+						calObj.calendar[day].setText(day + " " + list.get(0).getTaskName());
+					}
+					
+					// UI 갱신 (파일 로드하지 않고 현재 메모리 상태로 표시)
+					calObj.updateCal(false);
+					
+					// 성공 메시지 표시
+					JOptionPane.showMessageDialog(parent, 
+						"일정이 삭제되었습니다.", 
+						"삭제 완료", 
+						JOptionPane.INFORMATION_MESSAGE);
+					
+					// 리스트가 남아있으면 갱신된 목록 다시 표시
+					if (!list.isEmpty()) {
+						showDialogWithList(parent, dateKey, list);
+					}
+				}
+			});
 
 	        rowPanel.add(nameLabel);
 	        rowPanel.add(Box.createHorizontalStrut(10));

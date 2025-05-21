@@ -96,12 +96,13 @@ public class OurCalendar extends JFrame {
 		prevButton.addActionListener(e -> {
 			saveFile(); // 현재 달의 할 일 저장
 			cal.add(cal.MONTH, -1);
-			updateCal();
+			updateCal(true); // true: 파일 로드 수행
 		});
+
 		nextButton.addActionListener(e -> {
 			saveFile(); // 현재 달의 할 일 저장
 			cal.add(cal.MONTH, 1);
-			updateCal();
+			updateCal(true); // true: 파일 로드 수행
 		});
 		
 		JButton appendButton = new JButton("+");
@@ -117,14 +118,18 @@ public class OurCalendar extends JFrame {
 		add(calPanel, BorderLayout.CENTER);
 		add(appendButton, BorderLayout.SOUTH);
 		
-		updateCal();
+		updateCal(true);
 		setVisible(true); //위젯들이 보이도록 설정
 		
 		startReminderTimer(); 
 	}
 	
 	//달력을 업데이트 하는 함수
-	void updateCal() {
+	void updateCal() {// 오버로드
+		updateCal(false); // 기본값: 파일 로드 안 함
+	}
+
+	void updateCal(boolean loadFile) {
 		calPanel.removeAll(); //배열형 위젯 초기화
 		calPanel.setBackground(Color.white);
 		currentDay = 0;
@@ -155,7 +160,11 @@ public class OurCalendar extends JFrame {
 		monthLabel.setText(String.format("%d년 %d월", year, month + 1));
 		monthLabel.setFont(monthLabel.getFont().deriveFont(this.getWidth() * this.getHeight() / 25000.0f));
 		
-		openFile();
+		// 수정된 부분: 파라미터에 따라 파일 로드 여부 결정
+		if (loadFile) {
+			openFile();
+		}
+		
 		//현재 날짜를 현재 년도의 월의 1일로 변경
 		cal.set(year, month, 1);
 		//그 후 현재 날짜의 마지막 날짜를 가져옴
@@ -174,27 +183,29 @@ public class OurCalendar extends JFrame {
 			calendar[day].setBackground(Color.white);
 			
 			//  일정이 있으면 제목 표시
-		    String key = getDateKey(year, month, day);
-		    List<ToDo> todos = tasks.get(key);
-		    if (todos != null && !todos.isEmpty()) {
-		        calendar[day].setText(day + " " + todos.get(0).getTaskName()); // 여러 일정 중 첫 번째만
-		    }
-		    
-		    //<<수정 부분>>
-		    if(dayWeek == 1) {
-		    	dayWeek++;
-		    	calendar[day].setForeground(Color.red);
-		    }
-		    else if(dayWeek == 7) {
-		    	dayWeek = 1;
-		    	calendar[day].setForeground(Color.blue);
-		    }
-		    else {
-		    	dayWeek++;
-		    	calendar[day].setForeground(Color.black);
-		    }
-		    
-		    calendar[day].setFont( calendar[day].getFont().deriveFont(this.getWidth() * this.getHeight() / 25000.0f));
+			String key = getDateKey(year, month, day);
+			List<ToDo> todos = tasks.get(key);
+			if (todos != null && !todos.isEmpty()) {
+				calendar[day].setText(day + " " + todos.get(0).getTaskName()); // 여러 일정 중 첫 번째만
+			} else {
+				calendar[day].setText(String.valueOf(day)); // 일정이 없으면 날짜만 표시
+			}
+			
+			//<<수정 부분>>
+			if(dayWeek == 1) {
+				dayWeek++;
+				calendar[day].setForeground(Color.red);
+			}
+			else if(dayWeek == 7) {
+				dayWeek = 1;
+				calendar[day].setForeground(Color.blue);
+			}
+			else {
+				dayWeek++;
+				calendar[day].setForeground(Color.black);
+			}
+			
+			calendar[day].setFont(calendar[day].getFont().deriveFont(this.getWidth() * this.getHeight() / 25000.0f));
 			calPanel.add(calendar[day]);
 		}
 		
