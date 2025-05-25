@@ -13,30 +13,41 @@ import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.*;
-import javax.swing.Timer;
+import javax.swing.border.EmptyBorder;
+
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class OurCalendar extends JFrame {
+	// UI 테마 색상 상수
+	private static final Color PRIMARY_COLOR = new Color(64, 128, 255);
+	private static final Color SECONDARY_COLOR = new Color(248, 249, 250);
+	private static final Color ACCENT_COLOR = new Color(255, 99, 71);
+	private static final Color TEXT_COLOR = new Color(33, 37, 41);
+	private static final Color HOVER_COLOR = new Color(108, 117, 125);
+	private static final Color WEEKEND_COLOR = new Color(220, 53, 69);
+	private static final Color SELECTED_COLOR = new Color(173, 216, 230);
+
 	// 멤버 변수 선언
 	private int year;
 	private int month;
 	private int lastDay;
 	private int currentDay;
 	private int currentWeek;
-	public OurDate calendar[] = new OurDate[32]; // 현재 날짜의 정보는 claendar[currentDay]로 접근 가능
+	public OurDate calendar[] = new OurDate[32];
 	public Calendar cal = Calendar.getInstance();
-	HashMap<String, List<ToDo>> tasks = new HashMap<>(); // "년-월-일" : ToDo 연결
+	HashMap<String, List<ToDo>> tasks = new HashMap<>();
 	private ReminderService reminderService = new ReminderService();
 
 	// 위젯 관련 멤버 변수
-	JPanel headPanel; // 달력 위쪽을 표현할 위젯
-	JLabel monthLabel; // 달력의 년-월을 표현할 위젯
-	JPanel calPanel; // 달력의 날짜를 표현할 위젯
-	// <<수정부분>>
+	JPanel headPanel;
+	JLabel monthLabel;
+	JPanel calPanel;
 	JButton prevButton;
 	JButton nextButton;
 
@@ -44,18 +55,15 @@ public class OurCalendar extends JFrame {
 	// 생성자
 	OurCalendar() {
 		this.year = cal.get(cal.YEAR);
-		this.month = cal.get(cal.MONTH); // 1월(0) ~ 12월(11)로 저장됨
+		this.month = cal.get(cal.MONTH);
 		this.lastDay = cal.getActualMaximum(cal.DAY_OF_MONTH);
 		this.currentDay = 0;
 		this.currentWeek = 0;
 
 		for (int day = 1; day < 32; day++) {
-			calendar[day] = new OurDate(0, 0, this);
-			calendar[day].setBackground(Color.white);
+			calendar[day] = new OurDate(day, 0, this);
 		}
 
-		// <<수정 부분>>
-		// 달력의 크기 바뀔때마다 글자 크기 조정
 		this.addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
 				if (OurCalendar.this.calPanel != null)
@@ -65,14 +73,41 @@ public class OurCalendar extends JFrame {
 		openFile();
 	}
 
+	// 모던 버튼 생성 메소드
+	private JButton createModernButton(String text, Color bgColor) {
+		JButton button = new JButton(text);
+		button.setBackground(bgColor);
+		button.setForeground(Color.WHITE);
+		button.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+		button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+		button.setFocusPainted(false);
+		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+		// 호버 효과
+		button.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				button.setBackground(bgColor.darker());
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				button.setBackground(bgColor);
+			}
+		});
+
+		return button;
+	}
+
 	// 달력을 출력하는 메소드
 	void showCalendar() {
 		openFile();
 
-		setTitle("Calendar");
-		setSize(700, 500); // 달력 panel 크기
+		setTitle("📅 Modern Calendar");
+		setSize(800, 600);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
+		getContentPane().setBackground(SECONDARY_COLOR);
 
 		// 위젯 닫힐 때 현재 달의 할 일 저장
 		addWindowListener(new WindowAdapter() {
@@ -82,73 +117,97 @@ public class OurCalendar extends JFrame {
 			}
 		});
 
-		// 위쪽의 달력을 넘기는 버튼과 년-월 추가
-		headPanel = new JPanel();
+		// 헤더 패널 스타일링
+		headPanel = new JPanel(new BorderLayout());
+		headPanel.setBackground(Color.WHITE);
+		headPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
+
 		monthLabel = new JLabel();
-		// <<수정 부분>>
-		prevButton = new JButton("<");
-		nextButton = new JButton(">");
-		headPanel.add(prevButton);
-		headPanel.add(monthLabel);
-		headPanel.add(nextButton);
+		monthLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+		monthLabel.setForeground(TEXT_COLOR);
+		monthLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+		// 네비게이션 버튼들
+		prevButton = createModernButton("◀", PRIMARY_COLOR);
+		nextButton = createModernButton("▶", PRIMARY_COLOR);
+
+		JPanel navPanel = new JPanel(new FlowLayout());
+		navPanel.setBackground(Color.WHITE);
+		navPanel.add(prevButton);
+		navPanel.add(Box.createHorizontalStrut(20));
+		navPanel.add(monthLabel);
+		navPanel.add(Box.createHorizontalStrut(20));
+		navPanel.add(nextButton);
+
+		headPanel.add(navPanel, BorderLayout.CENTER);
 
 		// 버튼 이벤트 설정
 		prevButton.addActionListener(e -> {
-			saveFile(); // 현재 달의 할 일 저장
+			saveFile();
 			cal.add(cal.MONTH, -1);
-			updateCal(true); // true: 파일 로드 수행
+			updateCal(true);
 		});
 
 		nextButton.addActionListener(e -> {
-			saveFile(); // 현재 달의 할 일 저장
+			saveFile();
 			cal.add(cal.MONTH, 1);
-			updateCal(true); // true: 파일 로드 수행
+			updateCal(true);
 		});
 
-		JButton appendButton = new JButton("+");
+		// 일정 추가 버튼
+		JButton appendButton = createModernButton("+ 새 일정", ACCENT_COLOR);
 		appendButton.addActionListener(e -> {
 			this.showToDoList();
 		});
 
-		// 달력의 요일 밑 날짜를 담을 열이 7개인 배열형 위젯
-		calPanel = new JPanel(new GridLayout(0, 7));
+		// 하단 패널
+		JPanel bottomPanel = new JPanel(new FlowLayout());
+		bottomPanel.setBackground(SECONDARY_COLOR);
+		bottomPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
+		bottomPanel.add(appendButton);
 
-		setLayout(new BorderLayout()); // 달력의 레이아웃을 BorderLaydout()으로 설정
+		// 달력 패널 스타일링
+		calPanel = new JPanel(new GridLayout(0, 7, 2, 2));
+		calPanel.setBackground(SECONDARY_COLOR);
+		calPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
+
+		setLayout(new BorderLayout());
 		add(headPanel, BorderLayout.NORTH);
 		add(calPanel, BorderLayout.CENTER);
-		add(appendButton, BorderLayout.SOUTH);
+		add(bottomPanel, BorderLayout.SOUTH);
 
 		updateCal(true);
-		setVisible(true); // 위젯들이 보이도록 설정
+		setVisible(true);
 
 		startReminderTimer();
 	}
 
 	// 달력을 업데이트 하는 함수
-	void updateCal() {// 오버로드
-		updateCal(false); // 기본값: 파일 로드 안 함
+	void updateCal() {
+		updateCal(false);
 	}
 
 	void updateCal(boolean loadFile) {
-		calPanel.removeAll(); // 배열형 위젯 초기화
-		calPanel.setBackground(Color.white);
+		calPanel.removeAll();
 		currentDay = 0;
 		currentWeek = 0;
 
-		// <<수정 부분>>
-		this.prevButton.setPreferredSize(new Dimension(this.getWidth() / 17, this.getHeight() / 20));
-		this.nextButton.setPreferredSize(new Dimension(this.getWidth() / 17, this.getHeight() / 20));
-		// 요일 설정
+		// 요일 헤더 설정
 		String[] days = { "일", "월", "화", "수", "목", "금", "토" };
-		for (String day : days) {
-			JLabel label = new JLabel(day, SwingConstants.CENTER);
-			label.setFont(label.getFont().deriveFont(this.getWidth() * this.getHeight() / 25000.0f));
-			if (day == "일")
-				label.setForeground(Color.red);
-			else if (day == "토")
-				label.setForeground(Color.blue);
-			else
-				label.setForeground(Color.black);
+		for (int i = 0; i < days.length; i++) {
+			JLabel label = new JLabel(days[i], SwingConstants.CENTER);
+			label.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+			label.setOpaque(true);
+			label.setBackground(PRIMARY_COLOR);
+			label.setForeground(Color.WHITE);
+			label.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
+
+			if (i == 0) { // 일요일
+				label.setBackground(WEEKEND_COLOR);
+			} else if (i == 6) { // 토요일
+				label.setBackground(new Color(52, 144, 220));
+			}
+
 			calPanel.add(label);
 		}
 
@@ -158,9 +217,7 @@ public class OurCalendar extends JFrame {
 
 		// 년-월 위젯을 추가
 		monthLabel.setText(String.format("%d년 %d월", year, month + 1));
-		monthLabel.setFont(monthLabel.getFont().deriveFont(this.getWidth() * this.getHeight() / 25000.0f));
 
-		// 수정된 부분: 파라미터에 따라 파일 로드 여부 결정
 		if (loadFile) {
 			openFile();
 		}
@@ -174,36 +231,40 @@ public class OurCalendar extends JFrame {
 
 		// 앞쪽의 빈칸을 채움
 		for (int i = 1; i < dayWeek; i++) {
-			calPanel.add(new JLabel(""));
+			JLabel emptyLabel = new JLabel("");
+			emptyLabel.setOpaque(true);
+			emptyLabel.setBackground(Color.WHITE);
+			emptyLabel.setBorder(BorderFactory.createLineBorder(SECONDARY_COLOR, 1));
+			calPanel.add(emptyLabel);
 		}
 
 		// 여기서 부터 날짜를 채움
 		for (int day = 1; day <= lastDay; day++) {
 			calendar[day].setDate(day, dayWeek);
-			calendar[day].setBackground(Color.white);
 
 			// 일정이 있으면 제목 표시
 			String key = getDateKey(year, month, day);
 			List<ToDo> todos = tasks.get(key);
 			if (todos != null && !todos.isEmpty()) {
-				calendar[day].setText(day + " " + todos.get(0).getTaskName()); // 여러 일정 중 첫 번째만
+				calendar[day].setText("<html><div style='text-align: center;'>" +
+						day + "<br><small style='color: #666;'>" +
+						todos.get(0).getTaskName() + "</small></div></html>");
 			} else {
-				calendar[day].setText(String.valueOf(day)); // 일정이 없으면 날짜만 표시
+				calendar[day].setText(String.valueOf(day));
 			}
 
-			// <<수정 부분>>
-			if (dayWeek == 1) {
+			// 날짜 스타일링
+			if (dayWeek == 1) { // 일요일
+				calendar[day].setForeground(WEEKEND_COLOR);
 				dayWeek++;
-				calendar[day].setForeground(Color.red);
-			} else if (dayWeek == 7) {
+			} else if (dayWeek == 7) { // 토요일
+				calendar[day].setForeground(new Color(52, 144, 220));
 				dayWeek = 1;
-				calendar[day].setForeground(Color.blue);
 			} else {
+				calendar[day].setForeground(TEXT_COLOR);
 				dayWeek++;
-				calendar[day].setForeground(Color.black);
 			}
 
-			calendar[day].setFont(calendar[day].getFont().deriveFont(this.getWidth() * this.getHeight() / 25000.0f));
 			calPanel.add(calendar[day]);
 		}
 
@@ -219,11 +280,10 @@ public class OurCalendar extends JFrame {
 
 	// 할 일을 추가하고 지우는 화면으로 넘어가는 함수
 	void selectDate() {
-		// 현재 가리키는 날짜 출력(임시)
 		System.out.printf("%d일 %d요일\n", this.currentDay, this.currentWeek);
 		// 날짜 JLabel 색을 전부 흰색으로 변경
 		for (int i = 1; i < 32; i++) {
-			calendar[i].setBackground(Color.white);
+			calendar[i].setBackground(Color.WHITE);
 		}
 	}
 
@@ -233,7 +293,6 @@ public class OurCalendar extends JFrame {
 		if (currentDay == 0 || currentWeek == 0)
 			return;
 		System.out.printf("현재: %d일 %d요일\n", this.currentDay, this.currentWeek);
-		System.out.println("showToDoList 호출되었음!");
 		ToDoForm todoForm = new ToDoForm(year, month, currentDay, this);
 		todoForm.showList();
 	}
@@ -255,7 +314,7 @@ public class OurCalendar extends JFrame {
 	}
 
 	void startReminderTimer() {
-		Timer timer = new Timer(20 * 1000, e -> {
+		javax.swing.Timer timer = new javax.swing.Timer(20 * 1000, e -> {
 			reminderService.checkReminders(this);
 		});
 		timer.start();

@@ -10,10 +10,12 @@
 import java.util.HashMap;
 import java.util.List;
 import javax.swing.*;
+import javax.swing.border.Border;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -22,28 +24,60 @@ import java.awt.event.*;
 
 //라벨을 상속 받은 클래스
 public class OurDate extends JLabel {
+	// UI 테마 색상
+	private static final Color HOVER_COLOR = new Color(230, 240, 255);
+	private static final Color SELECTED_COLOR = new Color(173, 216, 230);
+	private static final Color NORMAL_COLOR = Color.WHITE;
+	private static final Color BORDER_COLOR = new Color(233, 236, 239);
+	private static final Color TASK_INDICATOR = new Color(52, 144, 220);
+
 	// 멤버 변수 선언
-	private int date; // 날짜
-	private int week; // (일 ~ 토, 1 ~ 7)
-	HashMap<Integer, ToDo> tasks = new HashMap<Integer, ToDo>(); // 할 일을 저장하는 HashMap 자료구조
-	private OurCalendar baseCal; // 베이스가 되는 OurCalendar 객체를 참조
+	private int date;
+	private int week;
+	HashMap<Integer, ToDo> tasks = new HashMap<Integer, ToDo>();
+	private OurCalendar baseCal;
+	private boolean isHovered = false;
 
 	// 생성자
 	OurDate(int date, int week, OurCalendar baseCal) {
-		super(String.valueOf(date), SwingConstants.CENTER); // 부모인 JLabel의 생성자 호출
+		super(String.valueOf(date), SwingConstants.CENTER);
 		this.date = date;
 		this.week = week;
 		this.baseCal = baseCal;
-		this.setOpaque(true); // 라벨의 색이 변경될 수 있도록 허락하는 함수
+		this.setOpaque(true);
+		this.setBackground(NORMAL_COLOR);
+		this.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+		this.setVerticalAlignment(SwingConstants.CENTER);
+		this.setHorizontalAlignment(SwingConstants.CENTER);
+		this.setBorder(createDateBorder());
+		this.setPreferredSize(new Dimension(80, 60));
+		this.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-		// 생성과 동시에 마우스 입력이벤트 추가
+		setupMouseEvents();
+	}
+
+	// 모던한 테두리 생성
+	private Border createDateBorder() {
+		return BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(BORDER_COLOR, 1),
+				BorderFactory.createEmptyBorder(5, 5, 5, 5));
+	}
+
+	// 마우스 이벤트 설정
+	private void setupMouseEvents() {
 		this.addMouseListener(new MouseAdapter() {
-			// @override
-			// 마우스 클릭 시 인식
+			@Override
 			public void mouseClicked(MouseEvent e) {
-				baseCal.setCurrent(OurDate.this.date, OurDate.this.week); // 달력이 가리키는 현재 날짜 변경
-				baseCal.selectDate(); // Calendar에서 할 일을 추가하는 함수 참조
-				OurDate.this.setBackground(new Color(173, 216, 230)); // 색깔을 변경
+				// 이전 선택된 날짜들 초기화
+				for (int i = 1; i < 32; i++) {
+					if (baseCal.calendar[i] != null) {
+						baseCal.calendar[i].setBackground(NORMAL_COLOR);
+					}
+				}
+
+				baseCal.setCurrent(OurDate.this.date, OurDate.this.week);
+				baseCal.selectDate();
+				OurDate.this.setBackground(SELECTED_COLOR);
 
 				// 선택한 날짜에 일정이 있으면 목록 보여주기
 				String key = OurCalendar.getDateKey(baseCal.getYear(), baseCal.getMonth(), baseCal.getCurrentDay());
@@ -53,7 +87,37 @@ public class OurDate extends JLabel {
 					ToDoForm.showDialogWithList(baseCal, key, list);
 				}
 			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				if (!getBackground().equals(SELECTED_COLOR)) {
+					setBackground(HOVER_COLOR);
+				}
+				isHovered = true;
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				if (!getBackground().equals(SELECTED_COLOR)) {
+					setBackground(NORMAL_COLOR);
+				}
+				isHovered = false;
+			}
 		});
+	}
+
+	// 일정이 있는 날짜 스타일 업데이트
+	public void updateTaskStyle(boolean hasTask) {
+		if (hasTask) {
+			// 일정이 있는 경우 하단에 작은 점 표시를 위한 HTML 사용
+			String currentText = getText();
+			if (!currentText.contains("●")) {
+				setText("<html><div style='text-align: center;'>" +
+						date + "<br><span style='color: #3490dc; font-size: 8px;'>●</span></div></html>");
+			}
+		} else {
+			setText(String.valueOf(date));
+		}
 	}
 
 	// 날짜 객체의 날짜와 그 요일을 변경
@@ -70,5 +134,4 @@ public class OurDate extends JLabel {
 	int getWeek() {
 		return week;
 	}
-
 }
