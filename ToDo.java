@@ -8,24 +8,26 @@ public class ToDo {
 	private String alarm;
 	private String repeat;
 	private String memo;
-	
-	public ToDo(String taskName, String location, boolean allDay, int startYear, int startMonth, int startDay, int startHour, int startMinute, int endYear, int endMonth, int endDay, int endHour, int endMinute, String alarm, String repeat, String memo) {
+
+	public ToDo(String taskName, String location, boolean allDay, int startYear, int startMonth, int startDay,
+			int startHour, int startMinute, int endYear, int endMonth, int endDay, int endHour, int endMinute,
+			String alarm, String repeat, String memo) {
 		this.setTaskName(taskName);
-        this.setLocation(location);
-        this.setAllDay(allDay);
-        this.setStartYear(startYear);
-        this.setStartMonth(startMonth);
-        this.setStartDay(startDay);
-        this.setStartHour(startHour);
-        this.setStartMinute(startMinute);
-        this.setEndYear(endYear);
-        this.setEndMonth(endMonth);
-        this.setEndDay(endDay);
-        this.setEndHour(endHour);
-        this.setEndMinute(endMinute);
-        this.setAlarm(alarm);
-        this.setRepeat(repeat);
-        this.setMemo(memo);
+		this.setLocation(location);
+		this.setAllDay(allDay);
+		this.setStartYear(startYear);
+		this.setStartMonth(startMonth);
+		this.setStartDay(startDay);
+		this.setStartHour(startHour);
+		this.setStartMinute(startMinute);
+		this.setEndYear(endYear);
+		this.setEndMonth(endMonth);
+		this.setEndDay(endDay);
+		this.setEndHour(endHour);
+		this.setEndMinute(endMinute);
+		this.setAlarm(alarm);
+		this.setRepeat(repeat);
+		this.setMemo(memo);
 	}
 
 	public String getTaskName() {
