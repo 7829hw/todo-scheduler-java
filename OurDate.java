@@ -1,7 +1,7 @@
 
 /**
  * @author 자바 프로그래밍 5조
- * @version 1.0
+ * @version 1.1 - 공유 일정 지원 추가
  * @since 2025-05-07
  * 
  * 이 클래스는 달력의 cell의 정보를 담고, 다루는 클래스 입니다.
@@ -79,12 +79,17 @@ public class OurDate extends JLabel {
 				baseCal.selectDate();
 				OurDate.this.setBackground(SELECTED_COLOR);
 
-				// 선택한 날짜에 일정이 있으면 목록 보여주기
-				String key = OurCalendar.getDateKey(baseCal.getYear(), baseCal.getMonth(), baseCal.getCurrentDay());
-				List<ToDo> list = baseCal.tasks.get(key);
+				// 선택한 날짜에 일정이 있으면 목록 보여주기 (로컬 + 공유)
+				String key = OurCalendar.getDateKey(baseCal.getYear(), baseCal.getMonth(), OurDate.this.date);
+				List<ToDo> localList = baseCal.tasks.get(key);
+				List<SharedToDo> sharedList = baseCal.sharedTasks.get(key);
 
-				if (list != null && !list.isEmpty()) {
-					ToDoForm.showDialogWithList(baseCal, key, list);
+				System.out.println("날짜 클릭: " + key + ", 로컬 일정: " +
+						(localList != null ? localList.size() : 0) + "개, 공유 일정: " +
+						(sharedList != null ? sharedList.size() : 0) + "개");
+
+				if ((localList != null && !localList.isEmpty()) || (sharedList != null && !sharedList.isEmpty())) {
+					ToDoForm.showDialogWithBothLists(baseCal, key, localList, sharedList);
 				}
 			}
 

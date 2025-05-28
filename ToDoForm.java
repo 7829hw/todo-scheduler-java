@@ -16,16 +16,19 @@ public class ToDoForm extends JDialog {
 	private static final Color SUCCESS_COLOR = new Color(40, 167, 69);
 	private static final Color TEXT_COLOR = new Color(33, 37, 41);
 	private static final Color BORDER_COLOR = new Color(206, 212, 218);
+	private static final Color SHARED_COLOR = new Color(255, 193, 7);
 
 	private int year;
 	private int month;
 	private int day;
 	private ToDo todo;
+	private SharedToDo sharedTodo; // 공유 일정 정보 보관
 	private boolean editMode = false;
 	OurCalendar baseCal;
 	JTextField titleField = new JTextField();
 	JTextField locationField = new JTextField();
 	JCheckBox checkBox = new JCheckBox();
+	JCheckBox shareCheckBox = new JCheckBox(); // 공유 일정 체크박스 추가
 	JComboBox<String> alarmCombo;
 	JComboBox<String> repeatCombo;
 	JTextArea memoArea;
@@ -155,7 +158,7 @@ public class ToDoForm extends JDialog {
 	// 새 일정 추가 UI
 	void showList() {
 		setTitle("📅 일정 관리");
-		setSize(400, 550);
+		setSize(400, 620); // 높이 증가 (공유 옵션 추가로 인해)
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		getContentPane().setBackground(Color.WHITE);
@@ -169,7 +172,17 @@ public class ToDoForm extends JDialog {
 		// 헤더
 		JPanel headerPanel = new JPanel(new BorderLayout());
 		headerPanel.setBackground(Color.WHITE);
-		JLabel titleLabel = new JLabel("새 일정 추가");
+
+		String titleText = "새 일정 추가";
+		if (editMode && todo != null) {
+			if (sharedTodo != null) {
+				titleText = "공유 일정 수정";
+			} else {
+				titleText = "일정 수정";
+			}
+		}
+
+		JLabel titleLabel = new JLabel(titleText);
 		titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 20));
 		titleLabel.setForeground(TEXT_COLOR);
 		headerPanel.add(titleLabel, BorderLayout.WEST);
@@ -202,6 +215,40 @@ public class ToDoForm extends JDialog {
 		checkPanel.add(allDayLabel, BorderLayout.WEST);
 		checkPanel.add(checkBox, BorderLayout.EAST);
 		mainPanel.add(checkPanel);
+		mainPanel.add(Box.createVerticalStrut(10));
+
+		// 공유 일정 체크박스 추가
+		JPanel sharePanel = new JPanel(new BorderLayout());
+		sharePanel.setBackground(Color.WHITE);
+
+		String shareLabelText = "🌐 공유 일정";
+		if (editMode && todo != null && sharedTodo == null) {
+			// 기존 로컬 일정 수정 시 변환 가능 표시
+			shareLabelText = "🌐 공유 일정으로 변환";
+		}
+
+		JLabel shareLabel = new JLabel(shareLabelText);
+		shareLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+		shareLabel.setForeground(SHARED_COLOR.darker());
+		shareCheckBox.setBackground(Color.WHITE);
+
+		// 서버 연결 상태에 따라 활성화/비활성화
+		if (baseCal.getClient() == null || !baseCal.getClient().isConnected()) {
+			shareCheckBox.setEnabled(false);
+			shareLabel.setText(shareLabelText + " (오프라인)");
+			shareLabel.setForeground(Color.GRAY);
+		}
+
+		// 기존 공유 일정 수정 시에는 특별 처리
+		if (sharedTodo != null) {
+			shareCheckBox.setSelected(true);
+			shareCheckBox.setEnabled(true); // 활성화하여 공유 해제 가능
+			shareLabel.setText("🌐 공유 일정 (체크 해제 시 개인 일정으로 변환)");
+		}
+
+		sharePanel.add(shareLabel, BorderLayout.WEST);
+		sharePanel.add(shareCheckBox, BorderLayout.EAST);
+		mainPanel.add(sharePanel);
 		mainPanel.add(Box.createVerticalStrut(15));
 
 		// 시간 설정 패널
@@ -253,10 +300,78 @@ public class ToDoForm extends JDialog {
 
 			if (editMode && todo != null) {
 				// 기존 객체 수정
-				updateExistingTodo(newData);
+				if (sharedTodo != null) {
+					// 공유 일정 수정
+					if (shareCheckBox.isSelected()) {
+						// 여전히 공유 일정으로 유지
+						updateSharedTodo(newData);
+					} else {
+						// 공유 일정을 개인 일정으로 변환
+						System.out.println("공유 일정을 개인 일정으로 변환 시작: " + newData.getTaskName());
+
+						// 서버에서 공유 일정 삭제
+						baseCal.deleteSharedTask(sharedTodo.getId());
+
+						// 로컬 공유 일정에서도 삭제
+						baseCal.deleteSharedTodo(sharedTodo.getId());
+
+						// 개인 일정으로 추가
+						baseCal.tasks.computeIfAbsent(date, k -> new ArrayList<>()).add(newData);
+
+						JOptionPane.showMessageDialog(this,
+								"공유 일정이 개인 일정으로 변환되었습니다.\n다른 사용자들에게는 삭제됩니다.",
+								"개인 일정 변환",
+								JOptionPane.INFORMATION_MESSAGE);
+					}
+				} else {
+					// 로컬 일정 수정
+					updateExistingTodo(newData);
+
+					// 공유 일정으로 변환 체크
+					if (shareCheckBox.isSelected() && baseCal.getClient() != null
+							&& baseCal.getClient().isConnected()) {
+						System.out.println("로컬 일정을 공유 일정으로 변환 시작: " + newData.getTaskName());
+
+						// 기존 로컬 일정을 리스트에서 제거
+						List<ToDo> localTodos = baseCal.tasks.get(date);
+						if (localTodos != null && localTodos.contains(todo)) {
+							localTodos.remove(todo);
+							System.out.println("로컬 일정 삭제 완료");
+						}
+
+						// 공유 일정으로 생성 (newData 사용)
+						baseCal.shareTask(newData);
+						System.out.println("공유 일정 생성 완료");
+
+						JOptionPane.showMessageDialog(this,
+								"로컬 일정이 공유 일정으로 변환되어 다른 사용자들과 공유되었습니다!",
+								"공유 일정 변환",
+								JOptionPane.INFORMATION_MESSAGE);
+					}
+				}
 			} else {
 				// 새로 추가
-				baseCal.tasks.computeIfAbsent(date, k -> new ArrayList<>()).add(newData);
+				if (shareCheckBox.isSelected() && baseCal.getClient() != null && baseCal.getClient().isConnected()) {
+					// 공유 일정으로만 생성 (로컬 일정은 생성하지 않음)
+					System.out.println("새 공유 일정 생성: " + newData.getTaskName());
+					baseCal.shareTask(newData);
+
+					JOptionPane.showMessageDialog(this,
+							"일정이 다른 사용자들과 공유되었습니다!",
+							"공유 완료",
+							JOptionPane.INFORMATION_MESSAGE);
+				} else {
+					// 로컬 일정으로만 생성
+					System.out.println("새 로컬 일정 생성: " + newData.getTaskName());
+					baseCal.tasks.computeIfAbsent(date, k -> new ArrayList<>()).add(newData);
+
+					if (shareCheckBox.isSelected()) {
+						JOptionPane.showMessageDialog(this,
+								"서버에 연결되지 않아 로컬 일정으로 저장되었습니다.",
+								"오프라인 모드",
+								JOptionPane.WARNING_MESSAGE);
+					}
+				}
 			}
 
 			// 달력 업데이트
@@ -394,6 +509,47 @@ public class ToDoForm extends JDialog {
 		todo.setMemo(newData.getMemo());
 	}
 
+	// 공유 일정 업데이트
+	private void updateSharedTodo(ToDo newData) {
+		if (sharedTodo == null) {
+			System.err.println("오류: sharedTodo가 null입니다!");
+			return;
+		}
+
+		System.out.println("공유 일정 업데이트 시작 - ID: " + sharedTodo.getId() + ", 제목: " + newData.getTaskName());
+
+		// 기존 SharedToDo 업데이트
+		sharedTodo.setTaskName(newData.getTaskName());
+		sharedTodo.setLocation(newData.getLocation());
+		sharedTodo.setAllDay(newData.isAllDay());
+		sharedTodo.setStartYear(newData.getStartYear());
+		sharedTodo.setStartMonth(newData.getStartMonth());
+		sharedTodo.setStartDay(newData.getStartDay());
+		sharedTodo.setStartHour(newData.getStartHour());
+		sharedTodo.setStartMinute(newData.getStartMinute());
+		sharedTodo.setEndYear(newData.getEndYear());
+		sharedTodo.setEndMonth(newData.getEndMonth());
+		sharedTodo.setEndDay(newData.getEndDay());
+		sharedTodo.setEndHour(newData.getEndHour());
+		sharedTodo.setEndMinute(newData.getEndMinute());
+		sharedTodo.setAlarm(newData.getAlarm());
+		sharedTodo.setRepeat(newData.getRepeat());
+		sharedTodo.setMemo(newData.getMemo());
+
+		System.out.println("공유 일정 업데이트 완료 - 서버 전송: " + sharedTodo.toNetworkString());
+
+		// 로컬에서 즉시 업데이트
+		baseCal.updateSharedTodo(sharedTodo);
+
+		// 서버로 업데이트 전송
+		baseCal.updateSharedTask(sharedTodo);
+
+		JOptionPane.showMessageDialog(this,
+				"공유 일정이 수정되어 다른 사용자들에게 전송되었습니다!",
+				"공유 일정 업데이트",
+				JOptionPane.INFORMATION_MESSAGE);
+	}
+
 	// 입력한 값들 받아옴
 	public ToDo getToDo() {
 		String title = titleField.getText().trim();
@@ -471,17 +627,31 @@ public class ToDoForm extends JDialog {
 		this.todo = todo;
 	}
 
+	public void setSharedTodo(SharedToDo sharedTodo) {
+		this.sharedTodo = sharedTodo;
+	}
+
 	// 수정용 생성자
 	public ToDoForm(int year, int month, int day, OurCalendar baseCal, ToDo existingToDo) {
 		this(year, month, day, baseCal);
 		this.todo = existingToDo;
 	}
 
-	// 추가되어 있는 일정 목록 UI - 수정, 삭제 기능 포함
-	public static void showDialogWithList(JFrame parent, String dateKey, List<ToDo> list) {
+	// 추가되어 있는 일정 목록 UI - 수정, 삭제 기능 포함 (로컬 + 공유 일정)
+	public static void showDialogWithList(JFrame parent, String dateKey, List<ToDo> localList) {
+		// 공유 일정도 함께 표시
+		OurCalendar calendar = (OurCalendar) parent;
+		List<SharedToDo> sharedList = calendar.sharedTasks.get(dateKey);
+
+		showDialogWithBothLists(parent, dateKey, localList, sharedList);
+	}
+
+	// 로컬 + 공유 일정을 모두 표시하는 다이얼로그
+	public static void showDialogWithBothLists(JFrame parent, String dateKey, List<ToDo> localList,
+			List<SharedToDo> sharedList) {
 		JDialog dialog = new JDialog(parent);
 		dialog.setTitle("📅 " + dateKey + " 일정");
-		dialog.setSize(500, 400);
+		dialog.setSize(500, 500);
 		dialog.setLocationRelativeTo(parent);
 		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		dialog.getContentPane().setBackground(Color.WHITE);
@@ -504,100 +674,47 @@ public class ToDoForm extends JDialog {
 		mainPanel.add(headerSep);
 		mainPanel.add(Box.createVerticalStrut(15));
 
-		// 일정 목록
-		for (int i = 0; i < list.size(); i++) {
-			ToDo todo = list.get(i);
-			int index = i;
+		// 로컬 일정 표시
+		if (localList != null && !localList.isEmpty()) {
+			JLabel localLabel = new JLabel("🏠 내 일정");
+			localLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+			localLabel.setForeground(PRIMARY_COLOR);
+			mainPanel.add(localLabel);
+			mainPanel.add(Box.createVerticalStrut(10));
 
-			JPanel rowPanel = new JPanel(new BorderLayout());
-			rowPanel.setBackground(new Color(248, 249, 250));
-			rowPanel.setBorder(BorderFactory.createCompoundBorder(
-					BorderFactory.createLineBorder(new Color(206, 212, 218), 1),
-					new EmptyBorder(15, 15, 15, 15)));
-			rowPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-			rowPanel.setMaximumSize(new Dimension(460, 80));
+			for (int i = 0; i < localList.size(); i++) {
+				ToDo todo = localList.get(i);
+				int index = i;
+				mainPanel.add(createLocalTodoPanel(dialog, parent, todo, localList, index, dateKey));
+				mainPanel.add(Box.createVerticalStrut(10));
+			}
+		}
 
-			// 일정 정보
-			JPanel infoPanel = new JPanel();
-			infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-			infoPanel.setBackground(new Color(248, 249, 250));
-
-			JLabel nameLabel = new JLabel(todo.getTaskName());
-			nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-			nameLabel.setForeground(new Color(33, 37, 41));
-
-			String timeInfo = String.format("%02d:%02d - %02d:%02d",
-					todo.getStartHour(), todo.getStartMinute(),
-					todo.getEndHour(), todo.getEndMinute());
-			JLabel timeLabel = new JLabel("🕐 " + timeInfo);
-			timeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-			timeLabel.setForeground(new Color(108, 117, 125));
-
-			if (!todo.getLocation().isEmpty()) {
-				JLabel locationLabel = new JLabel("📍 " + todo.getLocation());
-				locationLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-				locationLabel.setForeground(new Color(108, 117, 125));
-				infoPanel.add(locationLabel);
+		// 공유 일정 표시
+		if (sharedList != null && !sharedList.isEmpty()) {
+			if (localList != null && !localList.isEmpty()) {
+				mainPanel.add(Box.createVerticalStrut(15));
 			}
 
-			infoPanel.add(nameLabel);
-			infoPanel.add(timeLabel);
-
-			// 버튼 패널
-			JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
-			buttonPanel.setBackground(new Color(248, 249, 250));
-
-			JButton editButton = new JButton("수정");
-			styleSmallButton(editButton, new Color(64, 128, 255));
-
-			JButton deleteButton = new JButton("삭제");
-			styleSmallButton(deleteButton, new Color(220, 53, 69));
-
-			// 버튼 이벤트
-			editButton.addActionListener(e -> {
-				dialog.dispose();
-				if (parent instanceof OurCalendar) {
-					OurCalendar calendar = (OurCalendar) parent;
-					ToDoForm editForm = new ToDoForm(
-							todo.getStartYear(),
-							todo.getStartMonth(),
-							todo.getStartDay(),
-							calendar,
-							todo);
-					editForm.showList();
-				}
-			});
-
-			deleteButton.addActionListener(e -> {
-				int confirm = JOptionPane.showConfirmDialog(dialog,
-						"정말로 삭제하시겠습니까?", "삭제 확인",
-						JOptionPane.YES_NO_OPTION,
-						JOptionPane.QUESTION_MESSAGE);
-				if (confirm == JOptionPane.YES_OPTION) {
-					list.remove(index);
-					OurCalendar calObj = (OurCalendar) parent;
-					calObj.saveFile();
-					dialog.dispose();
-					calObj.updateCal(false);
-
-					JOptionPane.showMessageDialog(parent,
-							"일정이 삭제되었습니다.", "삭제 완료",
-							JOptionPane.INFORMATION_MESSAGE);
-
-					if (!list.isEmpty()) {
-						showDialogWithList(parent, dateKey, list);
-					}
-				}
-			});
-
-			buttonPanel.add(editButton);
-			buttonPanel.add(deleteButton);
-
-			rowPanel.add(infoPanel, BorderLayout.CENTER);
-			rowPanel.add(buttonPanel, BorderLayout.EAST);
-
-			mainPanel.add(rowPanel);
+			JLabel sharedLabel = new JLabel("🌐 공유 일정");
+			sharedLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+			sharedLabel.setForeground(SHARED_COLOR.darker());
+			mainPanel.add(sharedLabel);
 			mainPanel.add(Box.createVerticalStrut(10));
+
+			for (SharedToDo sharedTodo : sharedList) {
+				mainPanel.add(createSharedTodoPanelWithEdit(dialog, parent, sharedTodo, dateKey));
+				mainPanel.add(Box.createVerticalStrut(10));
+			}
+		}
+
+		// 일정이 없는 경우
+		if ((localList == null || localList.isEmpty()) && (sharedList == null || sharedList.isEmpty())) {
+			JLabel emptyLabel = new JLabel("등록된 일정이 없습니다.");
+			emptyLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
+			emptyLabel.setForeground(new Color(108, 117, 125));
+			emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+			mainPanel.add(emptyLabel);
 		}
 
 		mainPanel.add(Box.createVerticalGlue());
@@ -616,8 +733,258 @@ public class ToDoForm extends JDialog {
 
 		mainPanel.add(closePanel);
 
-		dialog.add(mainPanel);
+		JScrollPane scrollPane = new JScrollPane(mainPanel);
+		scrollPane.setBorder(null);
+		dialog.add(scrollPane);
 		dialog.setVisible(true);
+	}
+
+	// 로컬 일정 패널 생성
+	private static JPanel createLocalTodoPanel(JDialog dialog, JFrame parent, ToDo todo, List<ToDo> list, int index,
+			String dateKey) {
+		JPanel rowPanel = new JPanel(new BorderLayout());
+		rowPanel.setBackground(new Color(248, 249, 250));
+		rowPanel.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(new Color(206, 212, 218), 1),
+				new EmptyBorder(15, 15, 15, 15)));
+		rowPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		rowPanel.setMaximumSize(new Dimension(460, 80));
+
+		// 일정 정보
+		JPanel infoPanel = new JPanel();
+		infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+		infoPanel.setBackground(new Color(248, 249, 250));
+
+		JLabel nameLabel = new JLabel(todo.getTaskName());
+		nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+		nameLabel.setForeground(new Color(33, 37, 41));
+
+		String timeInfo = String.format("%02d:%02d - %02d:%02d",
+				todo.getStartHour(), todo.getStartMinute(),
+				todo.getEndHour(), todo.getEndMinute());
+		JLabel timeLabel = new JLabel("🕐 " + timeInfo);
+		timeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+		timeLabel.setForeground(new Color(108, 117, 125));
+
+		if (!todo.getLocation().isEmpty()) {
+			JLabel locationLabel = new JLabel("📍 " + todo.getLocation());
+			locationLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+			locationLabel.setForeground(new Color(108, 117, 125));
+			infoPanel.add(locationLabel);
+		}
+
+		infoPanel.add(nameLabel);
+		infoPanel.add(timeLabel);
+
+		// 버튼 패널
+		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+		buttonPanel.setBackground(new Color(248, 249, 250));
+
+		JButton editButton = new JButton("수정");
+		styleSmallButton(editButton, new Color(64, 128, 255));
+
+		JButton deleteButton = new JButton("삭제");
+		styleSmallButton(deleteButton, new Color(220, 53, 69));
+
+		// 버튼 이벤트
+		editButton.addActionListener(e -> {
+			dialog.dispose();
+			if (parent instanceof OurCalendar) {
+				OurCalendar calendar = (OurCalendar) parent;
+				ToDoForm editForm = new ToDoForm(
+						todo.getStartYear(),
+						todo.getStartMonth(),
+						todo.getStartDay(),
+						calendar,
+						todo);
+				editForm.showList();
+			}
+		});
+
+		deleteButton.addActionListener(e -> {
+			int confirm = JOptionPane.showConfirmDialog(dialog,
+					"정말로 삭제하시겠습니까?", "삭제 확인",
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.QUESTION_MESSAGE);
+			if (confirm == JOptionPane.YES_OPTION) {
+				list.remove(index);
+				OurCalendar calObj = (OurCalendar) parent;
+				calObj.saveFile();
+				dialog.dispose();
+				calObj.updateCal(false);
+
+				JOptionPane.showMessageDialog(parent,
+						"일정이 삭제되었습니다.", "삭제 완료",
+						JOptionPane.INFORMATION_MESSAGE);
+
+				// 남은 일정이 있으면 다시 표시
+				List<SharedToDo> remainingShared = calObj.sharedTasks.get(dateKey);
+				if (!list.isEmpty() || (remainingShared != null && !remainingShared.isEmpty())) {
+					showDialogWithBothLists(parent, dateKey, list, remainingShared);
+				}
+			}
+		});
+
+		buttonPanel.add(editButton);
+		buttonPanel.add(deleteButton);
+
+		rowPanel.add(infoPanel, BorderLayout.CENTER);
+		rowPanel.add(buttonPanel, BorderLayout.EAST);
+
+		return rowPanel;
+	}
+
+	// 공유 일정 패널 생성 (수정 가능)
+	private static JPanel createSharedTodoPanel(SharedToDo sharedTodo) {
+		JPanel rowPanel = new JPanel(new BorderLayout());
+		rowPanel.setBackground(new Color(255, 248, 220)); // 공유 일정 배경색
+		rowPanel.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(SHARED_COLOR, 2),
+				new EmptyBorder(15, 15, 15, 15)));
+		rowPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		rowPanel.setMaximumSize(new Dimension(460, 80));
+
+		// 일정 정보
+		JPanel infoPanel = new JPanel();
+		infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+		infoPanel.setBackground(new Color(255, 248, 220));
+
+		JLabel nameLabel = new JLabel(sharedTodo.getTaskName() + " (공유)");
+		nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+		nameLabel.setForeground(new Color(33, 37, 41));
+
+		String timeInfo = String.format("%02d:%02d - %02d:%02d",
+				sharedTodo.getStartHour(), sharedTodo.getStartMinute(),
+				sharedTodo.getEndHour(), sharedTodo.getEndMinute());
+		JLabel timeLabel = new JLabel("🕐 " + timeInfo);
+		timeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+		timeLabel.setForeground(new Color(108, 117, 125));
+
+		JLabel creatorLabel = new JLabel("👤 " + sharedTodo.getCreator() + "님이 공유");
+		creatorLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+		creatorLabel.setForeground(SHARED_COLOR.darker());
+
+		if (!sharedTodo.getLocation().isEmpty()) {
+			JLabel locationLabel = new JLabel("📍 " + sharedTodo.getLocation());
+			locationLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+			locationLabel.setForeground(new Color(108, 117, 125));
+			infoPanel.add(locationLabel);
+		}
+
+		infoPanel.add(nameLabel);
+		infoPanel.add(timeLabel);
+		infoPanel.add(creatorLabel);
+
+		rowPanel.add(infoPanel, BorderLayout.CENTER);
+
+		return rowPanel;
+	}
+
+	// 공유 일정 패널 생성 (수정 가능한 버전)
+	private static JPanel createSharedTodoPanelWithEdit(JDialog dialog, JFrame parent, SharedToDo sharedTodo,
+			String dateKey) {
+		JPanel rowPanel = new JPanel(new BorderLayout());
+		rowPanel.setBackground(new Color(255, 248, 220)); // 공유 일정 배경색
+		rowPanel.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(SHARED_COLOR, 2),
+				new EmptyBorder(15, 15, 15, 15)));
+		rowPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		rowPanel.setMaximumSize(new Dimension(460, 80));
+
+		// 일정 정보
+		JPanel infoPanel = new JPanel();
+		infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+		infoPanel.setBackground(new Color(255, 248, 220));
+
+		JLabel nameLabel = new JLabel(sharedTodo.getTaskName() + " (공유)");
+		nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+		nameLabel.setForeground(new Color(33, 37, 41));
+
+		String timeInfo = String.format("%02d:%02d - %02d:%02d",
+				sharedTodo.getStartHour(), sharedTodo.getStartMinute(),
+				sharedTodo.getEndHour(), sharedTodo.getEndMinute());
+		JLabel timeLabel = new JLabel("🕐 " + timeInfo);
+		timeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+		timeLabel.setForeground(new Color(108, 117, 125));
+
+		JLabel creatorLabel = new JLabel("👤 " + sharedTodo.getCreator() + "님이 공유");
+		creatorLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+		creatorLabel.setForeground(SHARED_COLOR.darker());
+
+		if (!sharedTodo.getLocation().isEmpty()) {
+			JLabel locationLabel = new JLabel("📍 " + sharedTodo.getLocation());
+			locationLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+			locationLabel.setForeground(new Color(108, 117, 125));
+			infoPanel.add(locationLabel);
+		}
+
+		infoPanel.add(nameLabel);
+		infoPanel.add(timeLabel);
+		infoPanel.add(creatorLabel);
+
+		// 버튼 패널 (본인이 만든 공유 일정만 수정/삭제 가능)
+		if (parent instanceof OurCalendar) {
+			OurCalendar calendar = (OurCalendar) parent;
+			if (sharedTodo.getCreator().equals(calendar.getNickname())) {
+				JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+				buttonPanel.setBackground(new Color(255, 248, 220));
+
+				JButton editButton = new JButton("수정");
+				styleSmallButton(editButton, SHARED_COLOR.darker());
+
+				JButton deleteButton = new JButton("삭제");
+				styleSmallButton(deleteButton, new Color(220, 53, 69));
+
+				editButton.addActionListener(e -> {
+					dialog.dispose();
+					ToDoForm editForm = new ToDoForm(
+							sharedTodo.getStartYear(),
+							sharedTodo.getStartMonth(),
+							sharedTodo.getStartDay(),
+							calendar,
+							sharedTodo); // SharedToDo를 ToDo로 전달
+					editForm.setSharedTodo(sharedTodo); // 원본 SharedToDo 정보 보관
+					editForm.showList();
+				});
+
+				deleteButton.addActionListener(e -> {
+					int confirm = JOptionPane.showConfirmDialog(dialog,
+							"정말로 삭제하시겠습니까?\n모든 사용자에게서 삭제됩니다.",
+							"공유 일정 삭제 확인",
+							JOptionPane.YES_NO_OPTION,
+							JOptionPane.QUESTION_MESSAGE);
+					if (confirm == JOptionPane.YES_OPTION) {
+						// 서버로 삭제 요청
+						calendar.deleteSharedTask(sharedTodo.getId());
+
+						// 로컬에서도 즉시 삭제
+						calendar.deleteSharedTodo(sharedTodo.getId());
+
+						dialog.dispose();
+
+						JOptionPane.showMessageDialog(calendar,
+								"공유 일정이 삭제되었습니다.", "삭제 완료",
+								JOptionPane.INFORMATION_MESSAGE);
+
+						// 남은 일정 있으면 다시 표시
+						List<ToDo> remainingLocal = calendar.tasks.get(dateKey);
+						List<SharedToDo> remainingShared = calendar.sharedTasks.get(dateKey);
+						if ((remainingLocal != null && !remainingLocal.isEmpty()) ||
+								(remainingShared != null && !remainingShared.isEmpty())) {
+							showDialogWithBothLists(calendar, dateKey, remainingLocal, remainingShared);
+						}
+					}
+				});
+
+				buttonPanel.add(editButton);
+				buttonPanel.add(deleteButton);
+				rowPanel.add(buttonPanel, BorderLayout.EAST);
+			}
+		}
+
+		rowPanel.add(infoPanel, BorderLayout.CENTER);
+
+		return rowPanel;
 	}
 
 	// 작은 버튼 스타일링
