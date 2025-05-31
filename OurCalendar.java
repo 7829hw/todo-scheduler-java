@@ -124,6 +124,8 @@ public class OurCalendar extends JFrame {
 		button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 		button.setFocusPainted(false);
 		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		button.setOpaque(true);
+		button.setContentAreaFilled(true);
 
 		// 호버 효과
 		button.addMouseListener(new MouseAdapter() {

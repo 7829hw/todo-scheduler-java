@@ -53,6 +53,8 @@ public class ToDoForm extends JDialog {
 		button.setBorder(BorderFactory.createEmptyBorder(12, 24, 12, 24));
 		button.setFocusPainted(false);
 		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		button.setOpaque(true);
+		button.setContentAreaFilled(true);
 
 		// 호버 효과
 		button.addMouseListener(new MouseAdapter() {
