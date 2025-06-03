@@ -47,8 +47,11 @@ public class ReminderService {
                         break;
                 }
 
-                String key = entry.getKey() + "_" + task.getTaskName() + "_" + alarmType;
-
+                String key = entry.getKey() + "_" + task.getTaskName()
+                + "_" + task.getStartHour()
+                + "_" + task.getStartMinute()
+                + "_" + alarmType;
+                
                 // 알림 시각에 도달했고 아직 알림을 보내지 않은 경우
                 long diff = Duration.between(now, notifyTime).toMinutes();
                 if (Math.abs(diff) <= 1 && !notifiedSet.contains(key)) {

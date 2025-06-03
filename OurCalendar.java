@@ -648,6 +648,10 @@ public class OurCalendar extends JFrame {
 		return currentDay;
 	}
 
+	public int getLastDay() {
+		return lastDay;
+	}
+
 	public CalendarClient getClient() {
 		return client;
 	}

@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -160,7 +161,7 @@ public class ToDoForm extends JDialog {
 	// 새 일정 추가 UI
 	void showList() {
 		setTitle("📅 일정 관리");
-		setSize(400, 620); // 높이 증가 (공유 옵션 추가로 인해)
+		setSize(400, 700);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		getContentPane().setBackground(Color.WHITE);
@@ -299,6 +300,29 @@ public class ToDoForm extends JDialog {
 		saveBtn.addActionListener(e -> {
 			String date = OurCalendar.getDateKey(year, month, day);
 			ToDo newData = getToDo();
+
+			// 유효성 검사 추가 (종료시간이 시작시간보다 앞서는 경우)
+			LocalDateTime startTime = LocalDateTime.of(
+					newData.getStartYear(),
+					newData.getStartMonth(),
+					newData.getStartDay(),
+					newData.getStartHour(),
+					newData.getStartMinute());
+
+			LocalDateTime endTime = LocalDateTime.of(
+					newData.getEndYear(),
+					newData.getEndMonth(),
+					newData.getEndDay(),
+					newData.getEndHour(),
+					newData.getEndMinute());
+
+			if (endTime.isBefore(startTime)) {
+				JOptionPane.showMessageDialog(this,
+						"시작 날짜는 종료 날짜 이전이어야 합니다.",
+						"시간 오류",
+						JOptionPane.ERROR_MESSAGE);
+				return; // 저장 중단
+			}
 
 			if (editMode && todo != null) {
 				// 기존 객체 수정
@@ -599,7 +623,7 @@ public class ToDoForm extends JDialog {
 
 	private String[] makeDayList() {
 		String[] days = new String[31];
-		for (int i = 0; i < 31; i++) {
+		for (int i = 0; i < baseCal.getLastDay(); i++) {
 			days[i] = (i + 1) + "일";
 		}
 		return days;
@@ -653,7 +677,7 @@ public class ToDoForm extends JDialog {
 			List<SharedToDo> sharedList) {
 		JDialog dialog = new JDialog(parent);
 		dialog.setTitle("📅 " + dateKey + " 일정");
-		dialog.setSize(500, 500);
+		dialog.setSize(650, 500);
 		dialog.setLocationRelativeTo(parent);
 		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		dialog.getContentPane().setBackground(Color.WHITE);
@@ -732,6 +756,10 @@ public class ToDoForm extends JDialog {
 		closeButton.setFocusPainted(false);
 		closeButton.addActionListener(e -> dialog.dispose());
 		closePanel.add(closeButton);
+		// 맥에서도 버튼 보이도록
+		closeButton.setContentAreaFilled(true);
+		closeButton.setOpaque(true);
+		closeButton.setBorderPainted(true);
 
 		mainPanel.add(closePanel);
 
@@ -784,9 +812,17 @@ public class ToDoForm extends JDialog {
 
 		JButton editButton = new JButton("수정");
 		styleSmallButton(editButton, new Color(64, 128, 255));
+		// 맥에서도 버튼 보이도록
+		editButton.setContentAreaFilled(true);
+		editButton.setOpaque(true);
+		editButton.setBorderPainted(true);
 
 		JButton deleteButton = new JButton("삭제");
 		styleSmallButton(deleteButton, new Color(220, 53, 69));
+		// 맥에서도 버튼 보이도록
+		deleteButton.setContentAreaFilled(true);
+		deleteButton.setOpaque(true);
+		deleteButton.setBorderPainted(true);
 
 		// 버튼 이벤트
 		editButton.addActionListener(e -> {
