@@ -50,7 +50,7 @@ public class ToDoForm extends JDialog {
 		JButton button = new JButton(text);
 		button.setBackground(bgColor);
 		button.setForeground(Color.WHITE);
-		button.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+		button.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
 		button.setBorder(BorderFactory.createEmptyBorder(12, 24, 12, 24));
 		button.setFocusPainted(false);
 		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -76,7 +76,7 @@ public class ToDoForm extends JDialog {
 	// 스타일링된 텍스트 필드 생성
 	private JTextField createStyledTextField(String placeholder) {
 		JTextField field = new JTextField();
-		field.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+		field.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
 		field.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(BORDER_COLOR, 1),
 				BorderFactory.createEmptyBorder(10, 12, 10, 12)));
@@ -114,14 +114,14 @@ public class ToDoForm extends JDialog {
 		dropdown.setOpaque(true);
 		dropdown.setBackground(Color.WHITE);
 		dropdown.setForeground(TEXT_COLOR);
-		dropdown.setFont(new Font("맑은 고딕", Font.PLAIN, 13));
+		dropdown.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
 		dropdown.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(BORDER_COLOR, 1),
 				BorderFactory.createEmptyBorder(6, 10, 6, 10)));
 		dropdown.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 		JList<String> list = new JList<>(options);
-		list.setFont(new Font("맑은 고딕", Font.PLAIN, 13));
+		list.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
 		JScrollPane scrollPane = new JScrollPane(list);
 		scrollPane.setPreferredSize(new Dimension(120, Math.min(25 * options.length, 120)));
 
@@ -186,7 +186,7 @@ public class ToDoForm extends JDialog {
 		}
 
 		JLabel titleLabel = new JLabel(titleText);
-		titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+		titleLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
 		titleLabel.setForeground(TEXT_COLOR);
 		headerPanel.add(titleLabel, BorderLayout.WEST);
 		mainPanel.add(headerPanel);
@@ -194,7 +194,7 @@ public class ToDoForm extends JDialog {
 
 		// 제목 입력
 		titleField = createStyledTextField("일정 제목을 입력하세요");
-		titleField.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+		titleField.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
 		mainPanel.add(titleField);
 		mainPanel.add(Box.createVerticalStrut(15));
 
@@ -213,7 +213,7 @@ public class ToDoForm extends JDialog {
 		JPanel checkPanel = new JPanel(new BorderLayout());
 		checkPanel.setBackground(Color.WHITE);
 		JLabel allDayLabel = new JLabel("하루종일");
-		allDayLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+		allDayLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
 		checkBox.setBackground(Color.WHITE);
 		checkPanel.add(allDayLabel, BorderLayout.WEST);
 		checkPanel.add(checkBox, BorderLayout.EAST);
@@ -231,7 +231,7 @@ public class ToDoForm extends JDialog {
 		}
 
 		JLabel shareLabel = new JLabel(shareLabelText);
-		shareLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+		shareLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
 		shareLabel.setForeground(SHARED_COLOR.darker());
 		shareCheckBox.setBackground(Color.WHITE);
 
@@ -272,13 +272,13 @@ public class ToDoForm extends JDialog {
 
 		// 메모
 		JLabel memoLabel = new JLabel("메모");
-		memoLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+		memoLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
 		memoLabel.setForeground(TEXT_COLOR);
 		mainPanel.add(memoLabel);
 		mainPanel.add(Box.createVerticalStrut(8));
 
 		memoArea = new JTextArea(4, 30);
-		memoArea.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+		memoArea.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
 		memoArea.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(BORDER_COLOR, 1),
 				BorderFactory.createEmptyBorder(10, 12, 10, 12)));
@@ -429,7 +429,7 @@ public class ToDoForm extends JDialog {
 		JPanel startPanel = new JPanel(new BorderLayout());
 		startPanel.setBackground(Color.WHITE);
 		JLabel startLabel = new JLabel("시작");
-		startLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+		startLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
 		startPanel.add(startLabel, BorderLayout.WEST);
 
 		JPanel start = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
@@ -454,7 +454,7 @@ public class ToDoForm extends JDialog {
 		JPanel finishPanel = new JPanel(new BorderLayout());
 		finishPanel.setBackground(Color.WHITE);
 		JLabel finishLabel = new JLabel("종료");
-		finishLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+		finishLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
 		finishPanel.add(finishLabel, BorderLayout.WEST);
 
 		JPanel end = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
@@ -487,12 +487,12 @@ public class ToDoForm extends JDialog {
 		alarmCombo = new JComboBox<>(new String[] {
 				"없음", "10분 전", "30분 전", "1시간 전", "하루 전"
 		});
-		alarmCombo.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+		alarmCombo.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
 
 		JPanel alarmPanel = new JPanel(new BorderLayout());
 		alarmPanel.setBackground(Color.WHITE);
 		JLabel alarmLabel = new JLabel("알림");
-		alarmLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+		alarmLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
 		alarmPanel.add(alarmLabel, BorderLayout.WEST);
 		alarmPanel.add(alarmCombo, BorderLayout.EAST);
 		optionsPanel.add(alarmPanel);
@@ -502,12 +502,12 @@ public class ToDoForm extends JDialog {
 		repeatCombo = new JComboBox<>(new String[] {
 				"없음", "매일", "매주", "매달", "매년"
 		});
-		repeatCombo.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+		repeatCombo.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
 
 		JPanel repeatPanel = new JPanel(new BorderLayout());
 		repeatPanel.setBackground(Color.WHITE);
 		JLabel repeatLabel = new JLabel("반복");
-		repeatLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+		repeatLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
 		repeatPanel.add(repeatLabel, BorderLayout.WEST);
 		repeatPanel.add(repeatCombo, BorderLayout.EAST);
 		optionsPanel.add(repeatPanel);
@@ -689,7 +689,7 @@ public class ToDoForm extends JDialog {
 
 		// 헤더
 		JLabel dayLabel = new JLabel(dateKey + " 일정 목록");
-		dayLabel.setFont(new Font("맑은 고딕", Font.BOLD, 22));
+		dayLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 22));
 		dayLabel.setForeground(new Color(33, 37, 41));
 		dayLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		mainPanel.add(dayLabel);
@@ -703,7 +703,7 @@ public class ToDoForm extends JDialog {
 		// 로컬 일정 표시
 		if (localList != null && !localList.isEmpty()) {
 			JLabel localLabel = new JLabel("🏠 내 일정");
-			localLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+			localLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
 			localLabel.setForeground(PRIMARY_COLOR);
 			mainPanel.add(localLabel);
 			mainPanel.add(Box.createVerticalStrut(10));
@@ -723,7 +723,7 @@ public class ToDoForm extends JDialog {
 			}
 
 			JLabel sharedLabel = new JLabel("🌐 공유 일정");
-			sharedLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+			sharedLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
 			sharedLabel.setForeground(SHARED_COLOR.darker());
 			mainPanel.add(sharedLabel);
 			mainPanel.add(Box.createVerticalStrut(10));
@@ -737,7 +737,7 @@ public class ToDoForm extends JDialog {
 		// 일정이 없는 경우
 		if ((localList == null || localList.isEmpty()) && (sharedList == null || sharedList.isEmpty())) {
 			JLabel emptyLabel = new JLabel("등록된 일정이 없습니다.");
-			emptyLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
+			emptyLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 16));
 			emptyLabel.setForeground(new Color(108, 117, 125));
 			emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 			mainPanel.add(emptyLabel);
@@ -751,7 +751,7 @@ public class ToDoForm extends JDialog {
 		JButton closeButton = new JButton("닫기");
 		closeButton.setBackground(new Color(108, 117, 125));
 		closeButton.setForeground(Color.WHITE);
-		closeButton.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+		closeButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
 		closeButton.setBorder(new EmptyBorder(10, 20, 10, 20));
 		closeButton.setFocusPainted(false);
 		closeButton.addActionListener(e -> dialog.dispose());
@@ -786,19 +786,19 @@ public class ToDoForm extends JDialog {
 		infoPanel.setBackground(new Color(248, 249, 250));
 
 		JLabel nameLabel = new JLabel(todo.getTaskName());
-		nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+		nameLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
 		nameLabel.setForeground(new Color(33, 37, 41));
 
 		String timeInfo = String.format("%02d:%02d - %02d:%02d",
 				todo.getStartHour(), todo.getStartMinute(),
 				todo.getEndHour(), todo.getEndMinute());
 		JLabel timeLabel = new JLabel("🕐 " + timeInfo);
-		timeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+		timeLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
 		timeLabel.setForeground(new Color(108, 117, 125));
 
 		if (!todo.getLocation().isEmpty()) {
 			JLabel locationLabel = new JLabel("📍 " + todo.getLocation());
-			locationLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+			locationLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
 			locationLabel.setForeground(new Color(108, 117, 125));
 			infoPanel.add(locationLabel);
 		}
@@ -888,23 +888,23 @@ public class ToDoForm extends JDialog {
 		infoPanel.setBackground(new Color(255, 248, 220));
 
 		JLabel nameLabel = new JLabel(sharedTodo.getTaskName() + " (공유)");
-		nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+		nameLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
 		nameLabel.setForeground(new Color(33, 37, 41));
 
 		String timeInfo = String.format("%02d:%02d - %02d:%02d",
 				sharedTodo.getStartHour(), sharedTodo.getStartMinute(),
 				sharedTodo.getEndHour(), sharedTodo.getEndMinute());
 		JLabel timeLabel = new JLabel("🕐 " + timeInfo);
-		timeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+		timeLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
 		timeLabel.setForeground(new Color(108, 117, 125));
 
 		JLabel creatorLabel = new JLabel("👤 " + sharedTodo.getCreator() + "님이 공유");
-		creatorLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+		creatorLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
 		creatorLabel.setForeground(SHARED_COLOR.darker());
 
 		if (!sharedTodo.getLocation().isEmpty()) {
 			JLabel locationLabel = new JLabel("📍 " + sharedTodo.getLocation());
-			locationLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+			locationLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
 			locationLabel.setForeground(new Color(108, 117, 125));
 			infoPanel.add(locationLabel);
 		}
@@ -935,23 +935,23 @@ public class ToDoForm extends JDialog {
 		infoPanel.setBackground(new Color(255, 248, 220));
 
 		JLabel nameLabel = new JLabel(sharedTodo.getTaskName() + " (공유)");
-		nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+		nameLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
 		nameLabel.setForeground(new Color(33, 37, 41));
 
 		String timeInfo = String.format("%02d:%02d - %02d:%02d",
 				sharedTodo.getStartHour(), sharedTodo.getStartMinute(),
 				sharedTodo.getEndHour(), sharedTodo.getEndMinute());
 		JLabel timeLabel = new JLabel("🕐 " + timeInfo);
-		timeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+		timeLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
 		timeLabel.setForeground(new Color(108, 117, 125));
 
 		JLabel creatorLabel = new JLabel("👤 " + sharedTodo.getCreator() + "님이 공유");
-		creatorLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+		creatorLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
 		creatorLabel.setForeground(SHARED_COLOR.darker());
 
 		if (!sharedTodo.getLocation().isEmpty()) {
 			JLabel locationLabel = new JLabel("📍 " + sharedTodo.getLocation());
-			locationLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+			locationLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
 			locationLabel.setForeground(new Color(108, 117, 125));
 			infoPanel.add(locationLabel);
 		}
@@ -1029,7 +1029,7 @@ public class ToDoForm extends JDialog {
 	private static void styleSmallButton(JButton button, Color bgColor) {
 		button.setBackground(bgColor);
 		button.setForeground(Color.WHITE);
-		button.setFont(new Font("맑은 고딕", Font.BOLD, 12));
+		button.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
 		button.setBorder(new EmptyBorder(6, 12, 6, 12));
 		button.setFocusPainted(false);
 		button.setCursor(new Cursor(Cursor.HAND_CURSOR));

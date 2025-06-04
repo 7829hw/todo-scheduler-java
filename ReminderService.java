@@ -48,10 +48,10 @@ public class ReminderService {
                 }
 
                 String key = entry.getKey() + "_" + task.getTaskName()
-                + "_" + task.getStartHour()
-                + "_" + task.getStartMinute()
-                + "_" + alarmType;
-                
+                        + "_" + task.getStartHour()
+                        + "_" + task.getStartMinute()
+                        + "_" + alarmType;
+
                 // 알림 시각에 도달했고 아직 알림을 보내지 않은 경우
                 long diff = Duration.between(now, notifyTime).toMinutes();
                 if (Math.abs(diff) <= 1 && !notifiedSet.contains(key)) {
@@ -83,10 +83,10 @@ public class ReminderService {
             headerPanel.setBackground(Color.WHITE);
 
             JLabel iconLabel = new JLabel("🔔");
-            iconLabel.setFont(new Font("Apple Color Emoji", Font.PLAIN, 24));
+            iconLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 24));
 
             JLabel titleLabel = new JLabel("일정 알림");
-            titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+            titleLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
             titleLabel.setForeground(new Color(33, 37, 41));
 
             headerPanel.add(iconLabel);
@@ -95,13 +95,13 @@ public class ReminderService {
 
             // 알림 유형
             JLabel typeLabel = new JLabel(alarmType.equals("없음") ? "정시 알림" : alarmType);
-            typeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+            typeLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
             typeLabel.setForeground(new Color(108, 117, 125));
             typeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
             // 일정 이름
             JLabel eventLabel = new JLabel(task.getTaskName());
-            eventLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+            eventLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
             eventLabel.setForeground(new Color(64, 128, 255));
             eventLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -109,7 +109,7 @@ public class ReminderService {
             String timeInfo = String.format("시작: %02d:%02d",
                     task.getStartHour(), task.getStartMinute());
             JLabel timeLabel = new JLabel(timeInfo);
-            timeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+            timeLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
             timeLabel.setForeground(new Color(108, 117, 125));
             timeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -117,7 +117,7 @@ public class ReminderService {
             JButton okButton = new JButton("확인");
             okButton.setBackground(new Color(64, 128, 255));
             okButton.setForeground(Color.WHITE);
-            okButton.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+            okButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
             okButton.setBorder(BorderFactory.createEmptyBorder(10, 30, 10, 30));
             okButton.setFocusPainted(false);
             okButton.setCursor(new Cursor(Cursor.HAND_CURSOR));

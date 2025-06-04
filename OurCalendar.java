@@ -120,7 +120,7 @@ public class OurCalendar extends JFrame {
 		JButton button = new JButton(text);
 		button.setBackground(bgColor);
 		button.setForeground(Color.WHITE);
-		button.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+		button.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
 		button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 		button.setFocusPainted(false);
 		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -172,7 +172,7 @@ public class OurCalendar extends JFrame {
 		headPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
 
 		monthLabel = new JLabel();
-		monthLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+		monthLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
 		monthLabel.setForeground(TEXT_COLOR);
 		monthLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -245,7 +245,7 @@ public class OurCalendar extends JFrame {
 		String[] days = { "일", "월", "화", "수", "목", "금", "토" };
 		for (int i = 0; i < days.length; i++) {
 			JLabel label = new JLabel(days[i], SwingConstants.CENTER);
-			label.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+			label.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
 			label.setOpaque(true);
 			label.setBackground(PRIMARY_COLOR);
 			label.setForeground(Color.WHITE);

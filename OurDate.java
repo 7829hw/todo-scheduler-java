@@ -46,7 +46,7 @@ public class OurDate extends JLabel {
 		this.baseCal = baseCal;
 		this.setOpaque(true);
 		this.setBackground(NORMAL_COLOR);
-		this.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+		this.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
 		this.setVerticalAlignment(SwingConstants.CENTER);
 		this.setHorizontalAlignment(SwingConstants.CENTER);
 		this.setBorder(createDateBorder());
