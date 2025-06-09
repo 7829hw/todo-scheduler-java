@@ -1,10 +1,7 @@
-/**
- * 공유 일정을 위한 ToDo 확장 클래스
- * 생성자 닉네임 정보 및 고유 ID 포함
- */
+
 public class SharedToDo extends ToDo {
     private String creator;
-    private String id; // 고유 식별자
+    private String id;
 
     public SharedToDo(String taskName, String location, boolean allDay,
             int startYear, int startMonth, int startDay, int startHour, int startMinute,
@@ -13,10 +10,9 @@ public class SharedToDo extends ToDo {
         super(taskName, location, allDay, startYear, startMonth, startDay, startHour, startMinute,
                 endYear, endMonth, endDay, endHour, endMinute, alarm, repeat, memo);
         this.creator = creator;
-        this.id = generateId(); // 고유 ID 생성
+        this.id = generateId();
     }
 
-    // 기존 생성자에 ID 매개변수 추가
     public SharedToDo(String taskName, String location, boolean allDay,
             int startYear, int startMonth, int startDay, int startHour, int startMinute,
             int endYear, int endMonth, int endDay, int endHour, int endMinute,
@@ -47,10 +43,6 @@ public class SharedToDo extends ToDo {
         this.id = id;
     }
 
-    /**
-     * 네트워크 전송용 문자열로 변환
-     * 기존 ToDo 포맷에 creator와 id 추가
-     */
     public String toNetworkString() {
         return String.format("%s|%s|%b|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%s|%s|%s|%s|%s",
                 getTaskName(), getLocation(), isAllDay(),
@@ -59,9 +51,6 @@ public class SharedToDo extends ToDo {
                 getAlarm(), getRepeat(), getMemo(), creator, id);
     }
 
-    /**
-     * 네트워크 문자열에서 SharedToDo 객체 생성
-     */
     public static SharedToDo fromNetworkString(String data, String creator) {
         try {
             String[] parts = data.split("\\|");
@@ -69,24 +58,23 @@ public class SharedToDo extends ToDo {
                 return null;
 
             SharedToDo todo = new SharedToDo(
-                    parts[0], // taskName
-                    parts[1], // location
-                    Boolean.parseBoolean(parts[2]), // allDay
-                    Integer.parseInt(parts[3]), // startYear
-                    Integer.parseInt(parts[4]), // startMonth
-                    Integer.parseInt(parts[5]), // startDay
-                    Integer.parseInt(parts[6]), // startHour
-                    Integer.parseInt(parts[7]), // startMinute
-                    Integer.parseInt(parts[8]), // endYear
-                    Integer.parseInt(parts[9]), // endMonth
-                    Integer.parseInt(parts[10]), // endDay
-                    Integer.parseInt(parts[11]), // endHour
-                    Integer.parseInt(parts[12]), // endMinute
-                    parts[13], // alarm
-                    parts[14], // repeat
-                    parts[15], // memo
-                    creator // creator
-            );
+                    parts[0],
+                    parts[1],
+                    Boolean.parseBoolean(parts[2]),
+                    Integer.parseInt(parts[3]),
+                    Integer.parseInt(parts[4]),
+                    Integer.parseInt(parts[5]),
+                    Integer.parseInt(parts[6]),
+                    Integer.parseInt(parts[7]),
+                    Integer.parseInt(parts[8]),
+                    Integer.parseInt(parts[9]),
+                    Integer.parseInt(parts[10]),
+                    Integer.parseInt(parts[11]),
+                    Integer.parseInt(parts[12]),
+                    parts[13],
+                    parts[14],
+                    parts[15],
+                    creator);
 
             System.out.println("SharedToDo 생성됨 - ID: " + todo.getId() + ", 제목: " + todo.getTaskName());
             return todo;
@@ -96,10 +84,6 @@ public class SharedToDo extends ToDo {
         }
     }
 
-    /**
-     * 서버에서 받은 완전한 문자열에서 SharedToDo 객체 생성
-     * (creator 정보 및 ID 포함)
-     */
     public static SharedToDo fromCompleteNetworkString(String data) {
         try {
             String[] parts = data.split("\\|");

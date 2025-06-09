@@ -1,10 +1,6 @@
 import java.io.*;
 import java.util.*;
 
-/**
- * 사용자별 로컬 데이터 및 공유 일정 캐시 관리
- * data_사용자닉네임/ 폴더에 저장
- */
 public class UserDataManager {
     private String nickname;
     private String userDataDir;
@@ -15,7 +11,6 @@ public class UserDataManager {
         this.userDataDir = "data_" + nickname.replaceAll("[^a-zA-Z0-9가-힣]", "_");
         this.sharedCacheFile = userDataDir + "/shared_cache.txt";
 
-        // 사용자 전용 디렉토리 생성
         File dir = new File(userDataDir);
         if (!dir.exists()) {
             dir.mkdir();
@@ -23,9 +18,6 @@ public class UserDataManager {
         }
     }
 
-    /**
-     * 사용자별 로컬 일정 저장
-     */
     public void saveLocalTasks(int year, int month, HashMap<String, List<ToDo>> tasks) {
         String fileName = String.format("%s/%d-%d.txt", userDataDir, year, month + 1);
 
@@ -55,9 +47,6 @@ public class UserDataManager {
         }
     }
 
-    /**
-     * 사용자별 로컬 일정 로드
-     */
     public HashMap<String, List<ToDo>> loadLocalTasks(int year, int month) {
         String fileName = String.format("%s/%d-%d.txt", userDataDir, year, month + 1);
         File file = new File(fileName);
@@ -101,9 +90,6 @@ public class UserDataManager {
         return tasks;
     }
 
-    /**
-     * 공유 일정 캐시 저장
-     */
     public void saveSharedCache(HashMap<String, List<SharedToDo>> sharedTasks) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(sharedCacheFile))) {
             for (String dateKey : sharedTasks.keySet()) {
@@ -121,9 +107,6 @@ public class UserDataManager {
         }
     }
 
-    /**
-     * 공유 일정 캐시 로드
-     */
     public HashMap<String, List<SharedToDo>> loadSharedCache() {
         HashMap<String, List<SharedToDo>> sharedTasks = new HashMap<>();
         File file = new File(sharedCacheFile);

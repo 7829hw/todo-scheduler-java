@@ -3,9 +3,6 @@ import java.net.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-/**
- * 캘린더 클라이언트 네트워크 통신 담당
- */
 public class CalendarClient {
     private static final String SERVER_HOST = "localhost";
     private static final int SERVER_PORT = 12345;
@@ -22,9 +19,6 @@ public class CalendarClient {
         this.calendar = calendar;
     }
 
-    /**
-     * 서버에 연결 시도
-     */
     public boolean connect(String nickname) {
         try {
             socket = new Socket(SERVER_HOST, SERVER_PORT);
@@ -32,13 +26,12 @@ public class CalendarClient {
             out = new PrintWriter(socket.getOutputStream(), true);
 
             this.nickname = nickname;
-            out.println(nickname); // 닉네임 전송
+            out.println(nickname);
 
-            // 서버 응답 확인
             String response = in.readLine();
             if (response != null && response.startsWith("CONNECTED")) {
                 connected = true;
-                startMessageListener(); // 메시지 수신 스레드 시작
+                startMessageListener();
                 System.out.println("서버 연결 성공: " + nickname);
                 return true;
             }
@@ -49,9 +42,6 @@ public class CalendarClient {
         return false;
     }
 
-    /**
-     * 서버에서 오는 메시지를 지속적으로 수신하는 스레드 시작
-     */
     private void startMessageListener() {
         Thread listener = new Thread(() -> {
             try {
@@ -70,9 +60,6 @@ public class CalendarClient {
         listener.start();
     }
 
-    /**
-     * 서버에서 받은 메시지 처리
-     */
     private void handleServerMessage(String message) {
         String[] parts = message.split("\\|", 2);
         if (parts.length < 2)
@@ -83,28 +70,28 @@ public class CalendarClient {
 
         switch (command) {
             case "CLEAR_SHARED_CACHE":
-                // 공유 일정 캐시 초기화 (서버에서 최신 데이터를 전송하기 전)
+
                 calendar.clearSharedCache();
                 System.out.println("공유 일정 캐시 초기화됨");
                 break;
             case "NEW_TODO":
-                // 새로운 공유 일정 수신 - 자신이 만든 것은 이미 로컬에 있으므로 제외
+
                 SharedToDo newTodo = SharedToDo.fromCompleteNetworkString(data);
                 if (newTodo != null && !newTodo.getCreator().equals(nickname)) {
-                    calendar.addSharedTodo(newTodo, true); // 알림 표시
+                    calendar.addSharedTodo(newTodo, true);
                 }
                 break;
             case "EXISTING_TODO":
-                // 기존 공유 일정 수신 - 자신이 만든 것도 포함해야 함 (재접속 시)
+
                 SharedToDo existingTodo = SharedToDo.fromCompleteNetworkString(data);
                 if (existingTodo != null) {
-                    calendar.addSharedTodo(existingTodo, false); // 알림 표시 안함
+                    calendar.addSharedTodo(existingTodo, false);
                     System.out
                             .println("기존 공유 일정 로드: " + existingTodo.getTaskName() + " by " + existingTodo.getCreator());
                 }
                 break;
             case "UPDATE_TODO":
-                // 공유 일정 업데이트 수신 - 자신의 업데이트도 처리해야 함
+
                 SharedToDo updatedTodo = SharedToDo.fromCompleteNetworkString(data);
                 if (updatedTodo != null) {
                     calendar.updateSharedTodo(updatedTodo);
@@ -113,7 +100,7 @@ public class CalendarClient {
                 }
                 break;
             case "DELETE_TODO":
-                // 공유 일정 삭제 수신 - 자신의 삭제도 처리해야 함
+
                 String todoId = data;
                 calendar.deleteSharedTodo(todoId);
                 System.out.println("공유 일정 삭제 수신: " + todoId);
@@ -121,24 +108,17 @@ public class CalendarClient {
         }
     }
 
-    /**
-     * 공유 일정을 서버로 전송 (ID 포함)
-     */
     public void shareTask(SharedToDo sharedTodo) {
         if (!connected || out == null) {
             System.err.println("서버에 연결되지 않음");
             return;
         }
 
-        // SharedToDo의 완전한 데이터를 전송 (ID 포함)
         String message = "SHARE_TODO|" + sharedTodo.toNetworkString();
         out.println(message);
         System.out.println("공유 일정 전송 (ID 포함): " + sharedTodo.getTaskName() + " (ID: " + sharedTodo.getId() + ")");
     }
 
-    /**
-     * 기존 ToDo를 서버로 공유 (하위 호환성)
-     */
     public void shareTask(ToDo todo) {
         if (!connected || out == null) {
             System.err.println("서버에 연결되지 않음");
@@ -157,9 +137,6 @@ public class CalendarClient {
         System.out.println("공유 일정 전송: " + todo.getTaskName());
     }
 
-    /**
-     * 공유 일정 업데이트를 서버로 전송
-     */
     public void updateSharedTask(SharedToDo sharedTodo) {
         if (!connected || out == null) {
             System.err.println("서버에 연결되지 않음");
@@ -171,9 +148,6 @@ public class CalendarClient {
         System.out.println("공유 일정 업데이트 전송: " + sharedTodo.getTaskName());
     }
 
-    /**
-     * 공유 일정 삭제를 서버로 전송
-     */
     public void deleteSharedTask(String todoId) {
         if (!connected || out == null) {
             System.err.println("서버에 연결되지 않음");
@@ -185,9 +159,6 @@ public class CalendarClient {
         System.out.println("공유 일정 삭제 전송: " + todoId);
     }
 
-    /**
-     * 연결 해제
-     */
     public void disconnect() {
         connected = false;
         try {

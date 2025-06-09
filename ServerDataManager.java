@@ -1,19 +1,12 @@
 import java.io.*;
 import java.util.*;
 
-/**
- * 서버의 공유 일정 데이터를 파일로 관리
- * shared_todos.txt 파일에 저장/로드
- */
 public class ServerDataManager {
     private static final String SERVER_DATA_DIR = "server_data";
     private static final String SHARED_TODOS_FILE = SERVER_DATA_DIR + "/shared_todos.txt";
 
-    /**
-     * 공유 일정 목록을 파일에 저장
-     */
     public static void saveSharedTodos(List<SharedToDo> sharedTodos) {
-        // 디렉토리 생성
+
         File dataDir = new File(SERVER_DATA_DIR);
         if (!dataDir.exists()) {
             dataDir.mkdir();
@@ -29,9 +22,6 @@ public class ServerDataManager {
         }
     }
 
-    /**
-     * 파일에서 공유 일정 목록을 로드
-     */
     public static List<SharedToDo> loadSharedTodos() {
         List<SharedToDo> sharedTodos = new ArrayList<>();
         File file = new File(SHARED_TODOS_FILE);

@@ -3,10 +3,6 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * 멀티스레드 캘린더 서버
- * 포트 12345에서 클라이언트 연결 대기
- */
 public class CalendarServer {
     private static final int PORT = 12345;
     private static Map<String, ClientHandler> clients = new ConcurrentHashMap<>();
@@ -15,10 +11,8 @@ public class CalendarServer {
     public static void main(String[] args) {
         System.out.println("📅 캘린더 서버 시작 - 포트: " + PORT);
 
-        // 기존 공유 일정 로드
         sharedTodos = Collections.synchronizedList(ServerDataManager.loadSharedTodos());
 
-        // 서버 종료 시 데이터 저장을 위한 셧다운 훅
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("서버 종료 중... 데이터 저장");
             ServerDataManager.saveSharedTodos(sharedTodos);
@@ -47,7 +41,7 @@ public class CalendarServer {
 
     public static void addSharedTodo(SharedToDo todo) {
         sharedTodos.add(todo);
-        ServerDataManager.saveSharedTodos(sharedTodos); // 즉시 저장
+        ServerDataManager.saveSharedTodos(sharedTodos);
         broadcastNewTodo(todo);
     }
 
@@ -66,7 +60,7 @@ public class CalendarServer {
             if (sharedTodos.get(i).getId().equals(updatedTodo.getId())) {
                 System.out.println("기존 일정 찾음: " + sharedTodos.get(i).getId() + " -> " + updatedTodo.getId());
                 sharedTodos.set(i, updatedTodo);
-                ServerDataManager.saveSharedTodos(sharedTodos); // 즉시 저장
+                ServerDataManager.saveSharedTodos(sharedTodos);
                 broadcastUpdatedTodo(updatedTodo);
                 System.out.println("공유 일정 업데이트 완료: " + updatedTodo.getTaskName() + " by " + updatedTodo.getCreator());
                 return;
@@ -93,7 +87,7 @@ public class CalendarServer {
             SharedToDo todo = sharedTodos.get(i);
             if (todo.getId().equals(todoId) && todo.getCreator().equals(requesterNickname)) {
                 sharedTodos.remove(i);
-                ServerDataManager.saveSharedTodos(sharedTodos); // 즉시 저장
+                ServerDataManager.saveSharedTodos(sharedTodos);
                 broadcastDeletedTodo(todoId);
                 System.out.println("공유 일정 삭제: " + todo.getTaskName() + " by " + todo.getCreator());
                 return;
