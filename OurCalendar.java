@@ -53,7 +53,7 @@ public class OurCalendar extends JFrame {
 	// 네트워킹 관련
 	private CalendarClient client; // 서버 클라이언트
 	private String nickname; // 사용자 닉네임
-	private UserDataManager userDataManager; // 사용자 데이터 관리자
+	private FileManager fileManager; // 사용자 데이터 관리자
 
 	// GUI 컴포넌트
 	JPanel headPanel; // 헤더 패널
@@ -67,9 +67,9 @@ public class OurCalendar extends JFrame {
 	 */
 	OurCalendar() {
 		// 현재 날짜로 초기화
-		this.year = cal.get(cal.YEAR);
-		this.month = cal.get(cal.MONTH);
-		this.lastDay = cal.getActualMaximum(cal.DAY_OF_MONTH);
+		this.year = cal.get(Calendar.YEAR);
+		this.month = cal.get(Calendar.MONTH);
+		this.lastDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
 		this.currentDay = 0;
 		this.currentWeek = 0;
 
@@ -106,7 +106,7 @@ public class OurCalendar extends JFrame {
 		}
 
 		// 사용자 데이터 관리자 초기화
-		userDataManager = new UserDataManager(nickname);
+		fileManager = new FileManager(nickname);
 
 		// 서버 연결 시도
 		client = new CalendarClient(this);
@@ -116,7 +116,7 @@ public class OurCalendar extends JFrame {
 			System.out.println("서버 연결 성공 - 공유 일정은 서버에서 수신 예정");
 		} else {
 			// 서버 연결 실패 - 로컬 캐시에서 공유 일정 로드
-			sharedTasks = userDataManager.loadSharedCache();
+			sharedTasks = fileManager.loadSharedCache();
 			System.out.println("서버 연결 실패 - 로컬 캐시에서 공유 일정 로드");
 
 			JOptionPane.showMessageDialog(
@@ -170,7 +170,7 @@ public class OurCalendar extends JFrame {
 		// 윈도우 제목 설정 (연결 상태 표시)
 		setTitle("📅 Modern Calendar - " + nickname +
 				(client.isConnected() ? " (온라인)" : " (오프라인)") +
-				" | 데이터: " + (userDataManager != null ? userDataManager.getUserDataDir() : "기본"));
+				" | 데이터: " + (fileManager != null ? fileManager.getUserDataDir() : "기본"));
 		setSize(800, 600);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
@@ -214,13 +214,13 @@ public class OurCalendar extends JFrame {
 		// 이전/다음 월 버튼 이벤트
 		prevButton.addActionListener(e -> {
 			saveFile();
-			cal.add(cal.MONTH, -1);
+			cal.add(Calendar.MONTH, -1);
 			updateCal(true);
 		});
 
 		nextButton.addActionListener(e -> {
 			saveFile();
-			cal.add(cal.MONTH, 1);
+			cal.add(Calendar.MONTH, 1);
 			updateCal(true);
 		});
 
@@ -291,8 +291,8 @@ public class OurCalendar extends JFrame {
 		}
 
 		// 현재 월 정보 업데이트
-		year = cal.get(cal.YEAR);
-		month = cal.get(cal.MONTH);
+		year = cal.get(Calendar.YEAR);
+		month = cal.get(Calendar.MONTH);
 
 		monthLabel.setText(String.format("%d년 %d월", year, month + 1));
 
@@ -301,8 +301,8 @@ public class OurCalendar extends JFrame {
 		}
 
 		cal.set(year, month, 1);
-		lastDay = cal.getActualMaximum(cal.DAY_OF_MONTH);
-		int dayWeek = cal.get(cal.DAY_OF_WEEK);
+		lastDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+		int dayWeek = cal.get(Calendar.DAY_OF_WEEK);
 
 		// 월 시작 전 빈 칸 추가
 		for (int i = 1; i < dayWeek; i++) {
@@ -435,8 +435,8 @@ public class OurCalendar extends JFrame {
 			sharedTasks.computeIfAbsent(key, k -> new ArrayList<>()).add(sharedTodo);
 
 			// 캐시 저장
-			if (userDataManager != null) {
-				userDataManager.saveSharedCache(sharedTasks);
+			if (fileManager != null) {
+				fileManager.saveSharedCache(sharedTasks);
 			}
 
 			// 화면 업데이트
@@ -482,8 +482,8 @@ public class OurCalendar extends JFrame {
 						found = true;
 
 						// 캐시 저장 및 화면 업데이트
-						if (userDataManager != null) {
-							userDataManager.saveSharedCache(sharedTasks);
+						if (fileManager != null) {
+							fileManager.saveSharedCache(sharedTasks);
 						}
 
 						updateCal(false);
@@ -552,8 +552,8 @@ public class OurCalendar extends JFrame {
 
 			if (found) {
 				// 캐시 저장 및 화면 업데이트
-				if (userDataManager != null) {
-					userDataManager.saveSharedCache(sharedTasks);
+				if (fileManager != null) {
+					fileManager.saveSharedCache(sharedTasks);
 				}
 
 				updateCal(false);
@@ -638,8 +638,8 @@ public class OurCalendar extends JFrame {
 			sharedTasks.computeIfAbsent(key, k -> new ArrayList<>()).add(sharedTodo);
 
 			// 캐시 저장 및 화면 업데이트
-			if (userDataManager != null) {
-				userDataManager.saveSharedCache(sharedTasks);
+			if (fileManager != null) {
+				fileManager.saveSharedCache(sharedTasks);
 			}
 
 			updateCal(false);
@@ -672,9 +672,9 @@ public class OurCalendar extends JFrame {
 	 * 현재 일정 데이터를 파일로 저장
 	 */
 	void saveFile() {
-		if (userDataManager != null) {
-			userDataManager.saveLocalTasks(year, month, tasks);
-			userDataManager.saveSharedCache(sharedTasks);
+		if (fileManager != null) {
+			fileManager.saveLocalTasks(year, month, tasks);
+			fileManager.saveSharedCache(sharedTasks);
 			System.out.println("사용자 데이터 저장 완료: " + nickname + " - " + year + "-" + (month + 1));
 		}
 	}
@@ -683,8 +683,8 @@ public class OurCalendar extends JFrame {
 	 * 파일에서 일정 데이터 로드
 	 */
 	void openFile() {
-		if (userDataManager != null) {
-			tasks = userDataManager.loadLocalTasks(year, month);
+		if (fileManager != null) {
+			tasks = fileManager.loadLocalTasks(year, month);
 			System.out.println("사용자 데이터 로드 완료: " + nickname + " - " + year + "-" + (month + 1));
 		}
 	}

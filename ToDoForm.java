@@ -835,7 +835,7 @@ public class ToDoForm extends JDialog {
 			mainPanel.add(Box.createVerticalStrut(10));
 
 			for (SharedToDo sharedTodo : sharedList) {
-				mainPanel.add(createSharedTodoPanelWithEdit(dialog, parent, sharedTodo, dateKey));
+				mainPanel.add(createSharedTodoPanel(dialog, parent, sharedTodo, dateKey));
 				mainPanel.add(Box.createVerticalStrut(10));
 			}
 		}
@@ -983,58 +983,6 @@ public class ToDoForm extends JDialog {
 	}
 
 	/**
-	 * 공유 일정 패널 생성 (읽기 전용)
-	 * 
-	 * @param sharedTodo 공유 일정 객체
-	 * @return 생성된 패널
-	 */
-	private static JPanel createSharedTodoPanel(SharedToDo sharedTodo) {
-		JPanel rowPanel = new JPanel(new BorderLayout());
-		rowPanel.setBackground(new Color(255, 248, 220));
-		rowPanel.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createLineBorder(SHARED_COLOR, 2),
-				new EmptyBorder(15, 15, 15, 15)));
-		rowPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		rowPanel.setMaximumSize(new Dimension(460, 80));
-
-		// 일정 정보 패널
-		JPanel infoPanel = new JPanel();
-		infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-		infoPanel.setBackground(new Color(255, 248, 220));
-
-		JLabel nameLabel = new JLabel(sharedTodo.getTaskName() + " (공유)");
-		nameLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
-		nameLabel.setForeground(new Color(33, 37, 41));
-
-		String timeInfo = String.format("%02d:%02d - %02d:%02d",
-				sharedTodo.getStartHour(), sharedTodo.getStartMinute(),
-				sharedTodo.getEndHour(), sharedTodo.getEndMinute());
-		JLabel timeLabel = new JLabel("🕐 " + timeInfo);
-		timeLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-		timeLabel.setForeground(new Color(108, 117, 125));
-
-		JLabel creatorLabel = new JLabel("👤 " + sharedTodo.getCreator() + "님이 공유");
-		creatorLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-		creatorLabel.setForeground(SHARED_COLOR.darker());
-
-		// 장소 정보 (있는 경우만)
-		if (!sharedTodo.getLocation().isEmpty()) {
-			JLabel locationLabel = new JLabel("📍 " + sharedTodo.getLocation());
-			locationLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-			locationLabel.setForeground(new Color(108, 117, 125));
-			infoPanel.add(locationLabel);
-		}
-
-		infoPanel.add(nameLabel);
-		infoPanel.add(timeLabel);
-		infoPanel.add(creatorLabel);
-
-		rowPanel.add(infoPanel, BorderLayout.CENTER);
-
-		return rowPanel;
-	}
-
-	/**
 	 * 공유 일정 패널 생성 (수정/삭제 버튼 포함 - 생성자만 가능)
 	 * 
 	 * @param dialog     부모 다이얼로그
@@ -1043,7 +991,7 @@ public class ToDoForm extends JDialog {
 	 * @param dateKey    날짜 키
 	 * @return 생성된 패널
 	 */
-	private static JPanel createSharedTodoPanelWithEdit(JDialog dialog, JFrame parent, SharedToDo sharedTodo,
+	private static JPanel createSharedTodoPanel(JDialog dialog, JFrame parent, SharedToDo sharedTodo,
 			String dateKey) {
 		JPanel rowPanel = new JPanel(new BorderLayout());
 		rowPanel.setBackground(new Color(255, 248, 220));

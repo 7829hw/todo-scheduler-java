@@ -11,7 +11,7 @@
 import java.io.*;
 import java.util.*;
 
-public class UserDataManager {
+public class FileManager {
     private String nickname; // 사용자 닉네임
     private String userDataDir; // 사용자별 데이터 디렉터리
     private String sharedCacheFile; // 공유 일정 캐시 파일 경로
@@ -21,7 +21,7 @@ public class UserDataManager {
      * 
      * @param nickname 사용자 닉네임
      */
-    public UserDataManager(String nickname) {
+    public FileManager(String nickname) {
         this.nickname = nickname;
         // 특수문자를 언더스코어로 변환하여 안전한 폴더명 생성
         this.userDataDir = "data_" + nickname.replaceAll("[^a-zA-Z0-9가-힣]", "_");
